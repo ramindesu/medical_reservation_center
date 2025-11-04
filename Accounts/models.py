@@ -59,3 +59,12 @@ class Patient(User):
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
         ordering = ["first_name"]
+
+class Admin(User):
+    def __str__(self):
+        return f"{self.first_name} - {self.last_name}"
+    
+    class Meta:
+        verbose_name = "Admin"
+        verbose_name_plural = "Admins"
+        ordering = ["first_name"]
