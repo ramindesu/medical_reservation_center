@@ -29,3 +29,6 @@ class Doctor(User):
     specialty = models.ForeignKey(Specialty,on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
     
+    def __str__(self):
+        return f'{self.info.first_name} - {self.info.last_name}'
+    
