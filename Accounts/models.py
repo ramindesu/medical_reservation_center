@@ -1,5 +1,5 @@
 from django.db import models
-from Medical_Archive import Specialty
+from Medical_Archive import Specialty , History
 
 # Create your models here.
 class User(models.Model):
@@ -32,3 +32,8 @@ class Doctor(User):
     def __str__(self):
         return f'{self.info.first_name} - {self.info.last_name}'
     
+    class Meta:
+        verbose_name = 'Doctor'
+        verbose_name_plural = 'Doctors'
+        ordering = ['specialty']
+
