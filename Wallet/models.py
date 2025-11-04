@@ -12,9 +12,13 @@ class Wallet(models.Model):
     transaction = models.TextField()
 
     def __str__(self):
-        return f"Wallet of {self.patient} and {self.doctor} with balance {self.balance}"
+        if self.patient:
+            return f"Wallet of Patient: {self.patient.user.first_name} {self.patient.user.last_name}"
+        elif self.doctor:
+            return f"Wallet of Doctor: {self.doctor.user.first_name} {self.doctor.user.last_name}"
+        return f"Wallet balance: {self.balance} - Transaction: {self.transaction}"
 
     class Meta:
         verbose_name = 'Wallet'
         verbose_name_plural = 'Wallets'
-        ordering = ['user.username']
+        ordering = ['patient__user__first_name', 'doctor__user__first_name']
