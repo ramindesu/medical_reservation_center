@@ -14,7 +14,7 @@ class Config(models.Model):
         verbose_name = "Config"
         verbose_name_plural = "Configs"
         ordering = ["key"]
-        abstract = True
+        
 
 class Blacklist(models.Model):
     doctor = models.ForeignKey(Doctor , on_delete=models.CASCADE , related_name='blacklisted_patients')
