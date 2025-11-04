@@ -23,4 +23,9 @@ class User(models.Model):
         ordering = ['fisrtـname']
         abstract = True
 
-
+class Doctor(User):
+    info = models.ForeignKey(User,on_delete=models.CASCADE)
+    medical_code = models.CharField(max_length=30,unique=True)
+    specialty = models.ForeignKey(Specialty,on_delete=models.CASCADE)
+    monthly_reservation_capacity = models.PositiveIntegerField(default=50)
+    
