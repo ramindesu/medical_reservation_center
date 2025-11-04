@@ -64,6 +64,10 @@ class Admin(User):
     def __str__(self):
         return f"{self.first_name} - {self.last_name}"
     
+    def save(self, *args, **kwargs):
+        self.role = self.Role.ADMIN
+        super().save(*args, **kwargs)
+    
     class Meta:
         verbose_name = "Admin"
         verbose_name_plural = "Admins"
