@@ -5,9 +5,9 @@ from django.db import models
 
 class Wallet(models.Model):
     patient = models.OneToOneField(
-        'auth.user', on_delete=models.CASCADE, related_name='patient_wallet')
+        'account.Patient', on_delete=models.CASCADE, related_name='patient_wallet')
     doctor = models.OneToOneField(
-        'auth.user', on_delete=models.CASCADE, related_name='doctor_wallet')
+        'account.Doctor', on_delete=models.CASCADE, related_name='doctor_wallet')
     balance = models.DecimalField(max_digits=10, decimal_places=2)
     transaction = models.TextField()
 
