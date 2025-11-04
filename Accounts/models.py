@@ -1,3 +1,26 @@
 from django.db import models
+from Medical_Archive import Specialty
 
 # Create your models here.
+class User(models.Model):
+    first_name = models.CharField(max_length=60)
+    last_name = models.CharField(max_length=60)
+    email = models.EmailField(unique=True)
+    address = models.TextField()
+    phone = models.CharField(max_length=15)
+    active = models.BooleanField(default=True)
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        DOCTOR = 'doctor', 'Doctor'
+        PATIENT = 'patient', 'Patient'
+    role = models.CharField(max_length=10, choices=Role.choices)
+    def __str__(self):
+        return f"{self.first_name}-{self.last_name}-{self.role}"
+    
+    class Meta:
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+        ordering = ['fisrtـname']
+        abstract = True
+
+
