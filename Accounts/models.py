@@ -1,6 +1,7 @@
 from django.db import models
 from Medical_Archive.models import Specialty, History
 
+
 class User(models.Model):
     first_name = models.CharField(max_length=60)
     last_name = models.CharField(max_length=60)
@@ -10,9 +11,9 @@ class User(models.Model):
     active = models.BooleanField(default=True)
 
     class Role(models.TextChoices):
-        ADMIN = 'admin', 'Admin'
-        DOCTOR = 'doctor', 'Doctor'
-        PATIENT = 'patient', 'Patient'
+        ADMIN = "admin", "Admin"
+        DOCTOR = "doctor", "Doctor"
+        PATIENT = "patient", "Patient"
 
     role = models.CharField(max_length=10, choices=Role.choices)
 
@@ -20,9 +21,9 @@ class User(models.Model):
         return f"{self.first_name}-{self.last_name}-{self.role}"
 
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
-        ordering = ['first_name']
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+        ordering = ["first_name"]
         abstract = True
 
 
@@ -36,12 +37,12 @@ class Doctor(User):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.first_name} - {self.last_name}'
+        return f"{self.first_name} - {self.last_name}"
 
     class Meta:
-        verbose_name = 'Doctor'
-        verbose_name_plural = 'Doctors'
-        ordering = ['specialty']
+        verbose_name = "Doctor"
+        verbose_name_plural = "Doctors"
+        ordering = ["specialty"]
 
 
 class Patient(User):
@@ -52,9 +53,9 @@ class Patient(User):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.first_name}-{self.last_name}'
+        return f"{self.first_name}-{self.last_name}"
 
     class Meta:
-        verbose_name = 'Patient'
-        verbose_name_plural = 'Patients'
-        ordering = ['first_name']
+        verbose_name = "Patient"
+        verbose_name_plural = "Patients"
+        ordering = ["first_name"]
