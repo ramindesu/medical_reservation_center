@@ -37,3 +37,13 @@ class Doctor(User):
         verbose_name_plural = 'Doctors'
         ordering = ['specialty']
 
+class Patient(User):
+    info = models.ForeignKey(User,on_delete=models.CASCADE)
+    history = models.ForeignKey(History,on_delete= models.CASCADE)
+    def __str__(self):
+        return f'{self.info.first_name}-{self.info.last_name}'
+    
+    class Meta:
+        verbose_name = 'Patient'
+        verbose_name_plural = 'Patient'
+        ordering = ['info.first_name']
