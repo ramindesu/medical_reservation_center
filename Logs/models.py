@@ -1,5 +1,6 @@
 from django.db import models
-from Accounts.models import User
+from Accounts.models import User, Patient
+from Reservations.models import Reservations
 
 
 class Log(models.Model):
@@ -19,7 +20,7 @@ class Log(models.Model):
         DOCTOR = 'dostor', 'Doctor'
         PATIENT = 'patient', 'Patient'
    
-    info = models.ForeignKey('Accounts.User', on_delete=models.CASCADE, related_name='logs')
+    info = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logs')
     action = models.CharField(max_length=50, choices=Action.choices)
     actor = models.CharField(max_length=50, choices=Actor.choices)
     time = models.DateTimeField(auto_now_add=True)
@@ -43,8 +44,8 @@ class Transaction(models.Model):
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=Status.choices)
-    patient = models.ForeignKey('Accounts.Patient', on_delete=models.CASCADE, related_name='transactions')
-    reservation = models.ForeignKey('Reservations.Reservations', on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='transactions')
+    reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Transaction"
