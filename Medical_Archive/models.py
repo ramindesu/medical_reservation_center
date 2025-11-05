@@ -1,4 +1,5 @@
 from django.db import models
+from Accounts.models import Patient
 
 # Create your models here.
 
@@ -17,7 +18,7 @@ class Specialty(models.Model):
 
 
 class History(models.Model):
-    patient = models.ForeignKey('Accounts.Patient', on_delete=models.CASCADE)
+    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
     history = models.TextField()
 
     def __str__(self):
