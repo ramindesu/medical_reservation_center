@@ -1,6 +1,6 @@
 from django.db import models
 from Medical_Archive.models import Specialty, History
-
+from django.core.validators import MinValueValidator , MaxValueValidator
 
 class User(models.Model):
     first_name = models.CharField(max_length=60)
@@ -9,6 +9,7 @@ class User(models.Model):
     address = models.TextField()
     phone = models.CharField(max_length=15)
     active = models.BooleanField(default=True)
+    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator , MaxValueValidator])
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
