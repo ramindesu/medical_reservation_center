@@ -50,10 +50,10 @@ This project is a web-based platform designed to facilitate online **appointment
 ---
 
 ## 📦 Project Structure (High-Level)
-reservation_system/
-│
-├── accounts/          # User, Doctor, Patient
-├── specialties/       # Medical specialties data
-├── reservations/      # Appointment logic
-├── core/              # System configs & shared utilities
-└── templates/         # Global templates (public pages)
+    reservation_system/
+    │
+    ├── accounts/          # User, Doctor, Patient
+    ├── specialties/       # Medical specialties data
+    ├── reservations/      # Appointment logic
+    ├── core/              # System configs & shared utilities
+    └── templates/         # Global templates (public pages)
