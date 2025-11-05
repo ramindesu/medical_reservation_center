@@ -38,3 +38,10 @@ class FeedBack(models.Model):
     def __str__(self):
         return f"Feedback ({self.rating}/10) from {self.patient.first_name}"
     
+    class Meta:
+        verbose_name = 'FeedBack'
+        verbose_name_plural = 'FeedBacks'
+        ordering = ['rating']
+
+
+    
