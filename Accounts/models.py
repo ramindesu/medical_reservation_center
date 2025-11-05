@@ -9,7 +9,7 @@ class User(models.Model):
     address = models.TextField()
     phone = models.CharField(max_length=15)
     active = models.BooleanField(default=True)
-    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator , MaxValueValidator])
+    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(0) , MaxValueValidator(10)])
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"

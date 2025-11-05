@@ -1,5 +1,4 @@
 from django.db import models
-from datetime import datetime
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 
