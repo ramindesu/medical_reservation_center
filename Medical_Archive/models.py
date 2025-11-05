@@ -18,15 +18,15 @@ class Specialty(models.Model):
 
 
 class History(models.Model):
-    patient = models.ForeignKey('Patient', on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     history = models.TextField()
 
     def __str__(self):
-        return f"History for {self.patient}" 
+        return f"History for {self.patient.first_name}" 
     
   
     class Meta:
         verbose_name = "Patient History"
         verbose_name_plural= "Patient Histories"
-        ordering= ["patient.first_name"]
+        ordering= ["patient__first_name"]
 
