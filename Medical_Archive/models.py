@@ -27,5 +27,5 @@ class History(models.Model):
     class Meta:
         verbose_name = "Patient History"
         verbose_name_plural= "Patient Histories"
-        ordering= ["first_name"]
+        ordering= ["patient.first_name"]
 
