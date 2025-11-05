@@ -57,3 +57,27 @@ This project is a web-based platform designed to facilitate online **appointment
     ├── reservations/      # Appointment logic
     ├── core/              # System configs & shared utilities
     └── templates/         # Global templates (public pages)
+---
+
+## 👥 Team Collaboration Notes
+
+- The project is being developed collaboratively.
+- All commits should follow GitLab workflow standards.
+- Each phase will be delivered and reviewed before proceeding.
+- Members : RAMIN,ATEFEH,NILOUFAR,HOSEIN,ZAHRA
+
+---
+
+## 💡 Summary
+
+This system is currently in **Phase 1**, focused on:
+- Github
+- Database design
+- Core model implementation
+- Base admin panel setup
+
+As development continues, the system will gradually evolve into a fully-featured appointment management platform.
+
+---
+
+GROUP_1 🤝
