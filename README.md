@@ -74,7 +74,7 @@ This system is currently in **Phase 1**, focused on:
 - Github
 - Database design
 - Core model implementation
-- Base admin panel setup
+
 
 As development continues, the system will gradually evolve into a fully-featured appointment management platform.
 
