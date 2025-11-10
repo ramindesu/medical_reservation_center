@@ -2,6 +2,7 @@ from django.db import models
 from Accounts.models import User  
 
 class Log(models.Model):
+
     class Action(models.TextChoices):
         LOGIN = 'login', 'Login'
         LOGOUT = 'logout', 'Logout'
