@@ -43,8 +43,9 @@ INSTALLED_APPS = [
     'Medical_Archive',
     'Configs',
     'Wallet',
-    'Logs'
-]
+    'Logs',
+    'Front'
+    ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
