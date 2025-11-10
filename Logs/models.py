@@ -31,7 +31,6 @@ class Log(models.Model):
 
     def __str__(self):
         return f"{self.info}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
-        return f"{self.info}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
 
 
 class Transaction(models.Model):
