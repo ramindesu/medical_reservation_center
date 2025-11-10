@@ -1,5 +1,5 @@
 from django.db import models
-from Medical_Archive.models import Specialty, History
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class User(models.Model):
@@ -9,6 +9,7 @@ class User(models.Model):
     address = models.TextField()
     phone = models.CharField(max_length=15)
     active = models.BooleanField(default=True)
+    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
@@ -18,7 +19,7 @@ class User(models.Model):
     role = models.CharField(max_length=10, choices=Role.choices)
 
     def __str__(self):
-        return f"{self.first_name}-{self.last_name}-{self.role}"
+        return f"{self.first_name} {self.last_name} ({self.role})"
 
     class Meta:
         verbose_name = "User"
@@ -29,7 +30,7 @@ class User(models.Model):
 
 class Doctor(User):
     medical_code = models.CharField(max_length=30, unique=True)
-    specialty = models.ForeignKey(Specialty, on_delete=models.CASCADE)
+    specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
 
     def save(self, *args, **kwargs):
@@ -37,7 +38,7 @@ class Doctor(User):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name} - {self.last_name}"
+        return f"Dr. {self.first_name} {self.last_name}"
 
     class Meta:
         verbose_name = "Doctor"
@@ -46,29 +47,24 @@ class Doctor(User):
 
 
 class Patient(User):
-    history = models.ForeignKey(History, on_delete=models.CASCADE)
-
     def save(self, *args, **kwargs):
         self.role = self.Role.PATIENT
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name}-{self.last_name}"
+        return f"{self.first_name} {self.last_name}"
 
     class Meta:
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
         ordering = ["first_name"]
 
+
 class Admin(User):
-    def __str__(self):
-        return f"{self.first_name} - {self.last_name}"
-    
     def save(self, *args, **kwargs):
         self.role = self.Role.ADMIN
         super().save(*args, **kwargs)
-    
+
     class Meta:
         verbose_name = "Admin"
         verbose_name_plural = "Admins"
-        ordering = ["first_name"]

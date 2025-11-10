@@ -24,13 +24,13 @@ class Log(models.Model):
     action = models.CharField(max_length=50, choices=Action.choices)
     actor = models.CharField(max_length=50, choices=Actor.choices)
     time = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         verbose_name = "Log"
         verbose_name_plural = "Logs"        
         ordering = ['-time']
 
     def __str__(self):
+        return f"{self.info}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
         return f"{self.info}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
 
 
