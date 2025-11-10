@@ -47,8 +47,6 @@ class Doctor(User):
 
 
 class Patient(User):
-    history = models.ForeignKey('Medical_Archive.History', on_delete=models.SET_NULL, null=True, blank=True)
-
     def save(self, *args, **kwargs):
         self.role = self.Role.PATIENT
         super().save(*args, **kwargs)
