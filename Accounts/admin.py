@@ -30,3 +30,13 @@ class PatientAdmin(admin.ModelAdmin):
 
 
 
+@admin.register(Admin)
+class AdminAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email', 'phone', 'active')
+    list_filter = ('active',)
+    search_fields = ('first_name', 'last_name', 'email', 'phone')
+    fieldsets = (
+        (None, {
+            'fields': ('first_name', 'last_name', 'email', 'phone', 'address', 'active')
+        }),
+    )
