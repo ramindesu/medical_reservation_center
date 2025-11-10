@@ -25,7 +25,7 @@ class User(models.Model):
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ["first_name"]
-        abstract = True
+        # abstract = True
 
 
 class Doctor(User):
