@@ -1,64 +1,55 @@
 from django.db import models
+from Accounts.models import User
 from Accounts.models import User, Patient
-from Reservations.models import Reservation
-
+from Reservations.models import Reservations
 
 class Log(models.Model):
-    
-    ACTION_CHOICES = [
-        ("login", "User Login"),
-        ("logout", "User Logout"),
-        ("create", "Create Action"),
-        ("update", "Update Action"),
-        ("delete", "Delete Action"),
-        ("payment", "Payment Transaction"),
-        ("reservation_request", "Reservation Request"),
-        ("reservation_schedule", "Reservation Scheduled"),
-        ("quota_increase_request", "Quota Increase Request"),
-        ("system", "System Event"),
-    ]
 
-    ACTOR_CHOICES = [
-        ("admin", "Admin"),
-        ("dostor", "Doctor"),
-        ("patient", "Patient"),
-    ]
-   
-    info = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='logs')
-    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
-    actor = models.CharField(max_length=50, choices=ACTOR_CHOICES)
+    class Action(models.TextChoices):
+        LOGIN = 'login', 'Login'
+        LOGIUT = 'logout', 'Logout'
+        CREATE = 'create', 'Create'
+        UPDATE ='update', 'Update'
+        DELETE = 'delete', 'Delete'
+        PAYMENT = 'payment', 'Payment'
+        RESERVATION = 'reservation', 'Reservation'
+        GUOTA_INCREASE = 'quota_increase', 'Quota Increase'
+
+    class Actor(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        DOCTOR = 'dostor', 'Doctor'
+        PATIENT = 'patient', 'Patient'
+
+    info = models.ForeignKey(User, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=50, choices=Action.choices)
+    actor = models.CharField(max_length=50, choices=Actor.choices)
     time = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Log"
         verbose_name_plural = "Logs"        
         ordering = ['-time']
-        # db_table='log'
 
     def __str__(self):
-        user = self.info.id if self.info else "System"
-        return f"{user}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
-    
+        return f"{self.info}({self.actor}): {self.action} ({self.time:%Y-%m-%d %H:%M})"
 
 
 class Transaction(models.Model):
 
-    STATUS_CHOICES = [
-        ('paid', 'Paid'),
-        ('charge', 'Charge'),
-        ('cancelled', 'Cancelled'),
-    ]
+    class Status(models.TextChoices):
+        PAID = 'paid', 'Paid'
+        CHARGE = 'charge', 'Charge'
+        CANCELLED = 'cancelled', 'Cancelled'
 
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
-    patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=Status.choices)  
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='transactions')
+    reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "Transaction"
         verbose_name_plural = "Transactions" 
-        ordering = ['-id']
-        # db_table = 'transaction'
+        ordering = ['status']
 
     def __str__(self):
-        return f"{self.id}: {self.amount} ({self.status})"
+        return f"{User.last_name}: {self.amount} ({self.status})"
