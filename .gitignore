@@ -163,3 +163,5 @@ cython_debug/
 # Streamlit
 .streamlit/secrets.toml
 resource
+*.pyc
+__pycache__/

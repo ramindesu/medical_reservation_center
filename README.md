@@ -1,10 +1,9 @@
-
 # Medical Appointment Reservation System
 
 This project is a web-based platform designed to facilitate online **appointment booking between patients and medical specialists**. The system ensures controlled and organized reservations so that each doctor can manage a limited number of appointments per month.
 
 > **Current Status:**  
-> We are currently in **Phase 1** of the project.  
+> We are currently in **Phase 2** of the project.  
 > The system is being developed step-by-step and will be expanded with new features in future phases.
 
 ---
@@ -37,6 +36,23 @@ This project is a web-based platform designed to facilitate online **appointment
 
 ---
 
+## 🎯 Phase 2 Scope (Current / In Progress)
+
+**Phase 2** focuses on enhancing the platform with more **user-friendly features and functional improvements**:
+
+- **Frontend Improvements**
+  - Responsive and interactive UI for Patients and Doctors
+  - Public pages: Home, About Us, Contact Us
+  - Dashboard for Admins and Doctors
+
+- **Appointment Management Enhancements**
+  - Automatic appointment conflict detection
+  - Appointment approval/rejection workflow for Doctors
+  - Calendar view for appointments
+- **System Features**
+  - Logging and audit trail for critical actions
+---
+
 ## 🏗 Technologies Used
 
 | Layer | Tools & Frameworks |
@@ -57,6 +73,7 @@ This project is a web-based platform designed to facilitate online **appointment
     ├── reservations/      # Appointment logic
     ├── core/              # System configs & shared utilities
     └── templates/         # Global templates (public pages)
+
 ---
 
 ## 👥 Team Collaboration Notes
@@ -64,17 +81,18 @@ This project is a web-based platform designed to facilitate online **appointment
 - The project is being developed collaboratively.
 - All commits should follow GitLab workflow standards.
 - Each phase will be delivered and reviewed before proceeding.
-- Members : RAMIN,ATEFEH,NILOUFAR,HOSEIN,ZAHRA
+- Members : RAMIN, ATEFEH, NILOUFAR, HOSEIN, ZAHRA
 
 ---
 
 ## 💡 Summary
 
-This system is currently in **Phase 1**, focused on:
-- Github
-- Database design
-- Core model implementation
+The system is evolving from **Phase 1** to **Phase 2**, adding:
 
+- Improved UI/UX
+- Appointment management enhancements
+- Notifications and calendar views
+- Preparations for online payments
 
 As development continues, the system will gradually evolve into a fully-featured appointment management platform.
 

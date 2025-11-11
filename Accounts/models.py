@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from Wallet.models import Wallet
 
 
 class User(models.Model):
@@ -25,13 +26,14 @@ class User(models.Model):
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ["first_name"]
-        abstract = True
+        # abstract = True
 
 
 class Doctor(User):
     medical_code = models.CharField(max_length=30, unique=True)
     specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
+    wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         self.role = self.Role.DOCTOR
@@ -47,6 +49,7 @@ class Doctor(User):
 
 
 class Patient(User):
+    wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE)
     def save(self, *args, **kwargs):
         self.role = self.Role.PATIENT
         super().save(*args, **kwargs)
