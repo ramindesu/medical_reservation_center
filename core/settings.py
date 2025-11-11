@@ -33,9 +33,13 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'Accounts.User'
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
-LOGIN_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/Accounts/login/'
+LOGIN_URL = '/Accounts/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+ALLOW_PATIENT_REGISTRATION = True
+ALLOW_DOCTOR_REGISTRATION = True
 
 # Application definition
 
