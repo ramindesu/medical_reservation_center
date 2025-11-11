@@ -1,5 +1,5 @@
 from django.db import models
-from Accounts.models import Doctor, Patient
+
 
 # Create your models here.
 
