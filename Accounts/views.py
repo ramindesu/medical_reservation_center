@@ -3,6 +3,43 @@ from django.shortcuts import render, redirect
 from .forms import PatientRegistrationForm, DoctorRegistrationForm
 from django.contrib.auth.decorators import login_required
 from Reservations.models import Reservations
+from django.contrib.auth.views import LoginView
+from django.urls import reverse
+from Accounts.models import Patient
+from django.contrib.auth.forms import UserCreationForm
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Patient.objects.create(user=user, wallet=None)
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/register.html', {'form': form})
+
+
+class CustomLoginView(LoginView):
+    template_name = 'accounts/login.html'
+
+    def get_success_url(self):
+        user = self.request.user
+        if user.role == 'doctor':
+            return reverse('doctor_dashboard')
+        elif user.role == 'patient':
+            return reverse('patient_dashboard')
+        else:
+            return reverse('login')  
+
+
+
+def login_redirect(request):
+    if request.user.role == 'doctor':
+        return redirect('/doctor/dashboard/')
+    elif request.user.role == 'patient':
+        return redirect('/patient/dashboard/')
+    return redirect('/')
 
 
 @login_required
@@ -11,7 +48,7 @@ def patient_dashboard(request):
         return render(request, 'error.html', {'message': 'Access denied'})
     
     reservations = Reservations.objects.filter(patient=request.user.patient).order_by('date', 'created_at')
-    return render(request, 'dashboard_patient.html', {'reservations': reservations})
+    return render(request, 'patient-dashboard.html', {'reservations': reservations})
 
 @login_required
 def doctor_dashboard(request):
@@ -19,7 +56,7 @@ def doctor_dashboard(request):
         return render(request, 'error.html', {'message': 'Access denied'})
     
     reservations = Reservations.objects.filter(doctor=request.user.doctor).order_by('date', 'created_at')
-    return render(request, 'dashboard_doctor.html', {'reservations': reservations})
+    return render(request, 'doctor-dashboard.html', {'reservations': reservations})
 
 
 

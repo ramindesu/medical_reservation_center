@@ -61,7 +61,7 @@ class Patient(models.Model):
     class Meta:
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
-        ordering = ["first_name"]
+        # ordering = ["first_name"]
 
 
 class Admin(models.Model):

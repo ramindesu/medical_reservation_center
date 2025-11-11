@@ -11,5 +11,5 @@ class AdminLog(admin.ModelAdmin):
 class AdminLog(admin.ModelAdmin):
     search_fields = ('amount', 'status', 'patient')
     list_filter = ('amount', 'status', 'patient')
-    list_display = ('id', 'amount', 'status', 'actor', 'patient', 'reservation')
+    list_display = ('id', 'amount', 'status', 'patient', 'reservation')
 
