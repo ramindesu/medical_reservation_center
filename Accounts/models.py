@@ -1,12 +1,13 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from Wallet.models import Wallet
 
 
-class User(models.Model):
-    first_name = models.CharField(max_length=60)
-    last_name = models.CharField(max_length=60)
-    email = models.EmailField(unique=True)
+class User(AbstractUser):
+    # first_name = models.CharField(max_length=60)
+    # last_name = models.CharField(max_length=60)
+    # email = models.EmailField(unique=True)
     address = models.TextField()
     phone = models.CharField(max_length=15)
     active = models.BooleanField(default=True)
