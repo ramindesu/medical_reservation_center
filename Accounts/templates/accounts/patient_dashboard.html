@@ -81,12 +81,12 @@
     
     <hr style="border-color: rgba(255,255,255,0.3); margin: 20px 0;">
 
-    <h3 href="{% url 'change_password' %}" class="text-white">Change Password</h3>
-    <form method="post">
+    {% comment %} <h3 href="{% url 'change_password' %}" class="text-white">Change Password</h3> {% endcomment %}
+    {% comment %} <form method="post">
         {% csrf_token %}
         {{ password_form.as_p }}
         <button type="submit" class="btn-glass mt-2">Update Password</button>
-    </form>
+    </form> {% endcomment %}
 
     {% for message in messages %}
         <p style="color: yellow;">{{ message }}</p>
