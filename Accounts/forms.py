@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User
 from Medical_Archive.models import Specialty
+from Reservations.models import Reservations
 
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -36,3 +37,23 @@ class UserRegistrationForm(UserCreationForm):
         if role == User.Role.DOCTOR and not specialty:
             raise forms.ValidationError("Please select a specialty for doctor.")
         return cleaned_data
+
+
+
+
+
+
+class DoctorReservationForm(forms.ModelForm):
+    class Meta:
+        model = Reservations
+        fields = ['date', 'service']
+        
+        widgets = {
+            
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
+            'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+        }
+        labels = {
+            'date': 'Date',
+            'service': 'Service',
+        }

@@ -9,7 +9,14 @@ from .models import Reservations, FeedBack
 class ReservationsAdmin(admin.ModelAdmin):
     list_display = ('patient', 'doctor', 'service', 'date', 'status', 'created_at', 'updated_at')
     list_filter = ('status', 'doctor', 'date')
-    search_fields = ('patient__first_name', 'patient__last_name', 'doctor__first_name', 'doctor__last_name', 'service')
+    search_fields = (
+        'patient__user__first_name',
+        'patient__user__last_name',
+        'doctor__user__first_name',
+        'doctor__user__last_name',
+        'service',
+        )
+
     ordering = ('-date',)
     readonly_fields = ('created_at', 'updated_at')
     fieldsets = (

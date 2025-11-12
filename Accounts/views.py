@@ -9,6 +9,7 @@ from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Medical_Archive.models import Specialty
 from django.db.models import Q
+from .forms import DoctorReservationForm
 
 
 class CustomLoginView(LoginView):
@@ -142,3 +143,44 @@ def booking_page(request, doctor_id):
         return redirect('patient_dashboard')
 
     return render(request, 'booking/booking.html', {'doctor': doctor, 'doctor_id': doctor_id})
+
+
+
+
+
+def doctor_details(request , doctor_id):
+    doctor = get_object_or_404(Doctor, pk=doctor_id, user__active=True)
+    can_book = request.user.is_authenticated and request.user.role == 'patient'
+    return render(request, 'doctors/detail.html' , {'doctor' : doctor, 'can_book': can_book })
+
+
+@login_required
+def doctor_reservation(request, doctor_id):
+    doctor = get_object_or_404(Doctor, user__id=doctor_id)
+
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Only patients can book appointments.'})
+
+    if request.method == "POST":
+        form = DoctorReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.doctor = doctor
+            reservation.patient = request.user.patient  
+            reservation.status = Reservations.Status.WAITING
+            reservation.save()
+            messages.success(
+                request, 
+                f"Your appointment with Dr. {doctor.user.get_full_name()} has been booked successfully."
+            )
+            return redirect('home')
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = DoctorReservationForm() 
+
+    return render(request, 'booking/booking.html', {
+        'form': form,
+        'doctor': doctor,
+    })
+
