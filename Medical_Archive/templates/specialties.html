@@ -88,7 +88,7 @@
 
         {% if specialties %}
             {% for specialty in specialties %}
-                <a href="{% url 'doctors_by_specialty' specialty.id %}" class="specialty-card">
+                <a href="{% url 'doctors_list' specialty.id %}" class="specialty-card">
                     <i class="bi bi-heart-pulse-fill"></i> {{ specialty.title }}
                 </a>
             {% endfor %}
