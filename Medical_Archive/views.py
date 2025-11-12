@@ -4,7 +4,7 @@ from Accounts.models import Doctor
 
 def specialties(request):
     specialties = Specialty.objects.all()
-    return render(request, 'Medical_Archive/specialties.html', {'specialties': specialties})
+    return render(request, 'specialties.html', {'specialties': specialties})
 
 # def doctors_by_specialty(request, specialty_id):
 #     specialty = get_object_or_404(Specialty, id=specialty_id)

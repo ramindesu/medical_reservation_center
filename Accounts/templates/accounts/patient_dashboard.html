@@ -81,7 +81,7 @@
     
     <hr style="border-color: rgba(255,255,255,0.3); margin: 20px 0;">
 
-    <h3 href="change-password/" class="text-white">Change Password</h3>
+    <h3 href="{% url 'change_password' %}" class="text-white">Change Password</h3>
     <form method="post">
         {% csrf_token %}
         {{ password_form.as_p }}
