@@ -24,30 +24,51 @@ class CustomLoginView(LoginView):
 
 
 def register(request):
-    role = 'patient'
-
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            role = form.cleaned_data['role']
-            specialty = form.cleaned_data.get('specialty')
-
             user = form.save(commit=False)
+            role = form.cleaned_data['role']
             user.role = role
-            if role == 'doctor':
-                if not specialty:
-                    messages.error(request, "Please enter your specialty.")
-                    return render(request, 'accounts/register.html', {'form': form, 'role': role})
-                user.specialty = specialty
+            if role == User.Role.PATIENT:
+                user.address = "" 
             user.save()
+
+           
+            wallet = Wallet.objects.create(balance=0)
+
+            if role == User.Role.DOCTOR:
+                specialty = form.cleaned_data.get('specialty')
+                if not specialty:
+                    messages.error(request, "Please select your specialty.")
+                    return render(request, 'accounts/register.html', {'form': form})
+
+                medical_code = f"DR-{user.id:04d}"
+
+                Doctor.objects.create(
+                    user=user,
+                    specialty=specialty,
+                    wallet=wallet,
+                    medical_code=medical_code,
+                    monthly_reservation_capacity=50
+                )
+
+            elif role == User.Role.PATIENT:
+                Patient.objects.create(user=user, wallet=wallet)
+
             messages.success(request, "Registration successful! You can now log in.")
             return redirect('login')
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
 
-    return render(request, 'accounts/register.html', {'form': form, 'role': role})
+    return render(request, 'accounts/register.html', {'form': form})
+
+
+
+
+
 
 
 
@@ -89,8 +110,6 @@ def doctor_dashboard(request):
         'reservations': reservations,
     }
     return render(request, 'accounts/doctor_dashboard.html', context)
-
-
 
 
 
