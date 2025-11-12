@@ -10,4 +10,9 @@ def doctors_list(request):
         'doctors': doctors,
         'specialties': specialties
     })
+    
+def booking_page(request, doctor_id):
+    return render(request, 'booking/booking.html', {
+        'doctor_id': doctor_id
+    })
 

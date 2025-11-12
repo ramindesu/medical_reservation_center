@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     
     path('doctors/', views.doctors_list, name='doctors_list'),
+    path('booking/<int:doctor_id>/', views.booking_page, name='booking_page'),
     
     path('login/', auth_views.LoginView.as_view(template_name='accounts/templates/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),

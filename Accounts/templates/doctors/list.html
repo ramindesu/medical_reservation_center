@@ -10,72 +10,95 @@
         body {
             background: linear-gradient(135deg, #667eea, #764ba2);
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px;
             font-family: 'Inter', sans-serif;
         }
         .doctor-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s ease;
         }
         .doctor-card:hover {
             transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .btn-book {
+            background: rgba(76, 175, 80, 0.3);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .btn-book:hover {
+            background: rgba(76, 175, 80, 0.5);
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        
+      
         <div class="text-center text-white mb-5">
-            <h1 class="display-4 mb-3"><i class="bi bi-heart-pulse"></i> Our Doctors</h1>
-            <p class="lead">Specialist Medical Team</p>
+            <h1 class="display-4"><i class="bi bi-heart-pulse"></i> Our Specialist Doctors</h1>
+            <p class="lead">Click on any doctor to book an appointment</p>
         </div>
 
         
         <div class="row">
             {% for doctor in doctors %}
-            <div class="col-lg-6 col-md-6 mb-4">
-                <div class="doctor-card">
-                   
-                    <div class="d-flex align-items-center">
-                        
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-person-circle display-4 text-primary"></i>
-                        </div>
-                        
-                       
-                        <div class="flex-grow-1 ms-4">
-                            <h4 class="mb-1">Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h4>
-                            <p class="text-muted mb-2">
-                                <i class="bi bi-stethoscope"></i> {{ doctor.specialty.title }}
-                            </p>
-                            
-                            
-                            <div class="small text-muted">
-                                <p class="mb-1">
-                                    <i class="bi bi-envelope"></i> {{ doctor.user.email }}
-                                </p>
-                                {% if doctor.user.phone %}
-                                <p class="mb-1">
-                                    <i class="bi bi-telephone"></i> {{ doctor.user.phone }}
-                                </p>
-                                {% endif %}
-                            </div>
-                        </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="doctor-card text-white">
+                    
+                    <div class="text-center mb-3">
+                        <i class="bi bi-person-circle display-1"></i>
+                    </div>
+                    
+                    
+                    <h5 class="text-center">Dr. {{ doctor.user.get_full_name }}</h5>
+                    <p class="text-center mb-2">
+                        <i class="bi bi-stethoscope"></i> {{ doctor.specialty.title }}
+                    </p>
+                    
+                    
+                    <div class="text-center small mb-3">
+                        <p class="mb-1">
+                            <i class="bi bi-envelope"></i> {{ doctor.user.email }}
+                        </p>
+                        {% if doctor.user.phone %}
+                        <p class="mb-1">
+                            <i class="bi bi-telephone"></i> {{ doctor.user.phone }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    
+                    <div class="text-center mb-3">
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-star-fill"></i> {{ doctor.user.rate }}/10
+                        </span>
+                    </div>
+
+                    
+                    <div class="text-center">
+                        <a href="/booking/{{ doctor.id }}/" class="btn btn-book">
+                            <i class="bi bi-calendar-check"></i> Book Appointment
+                        </a>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-       
+        
         <div class="text-center text-white mt-4">
-            <p class="mb-0">
+            <p>
                 <i class="bi bi-info-circle"></i> 
-                Showing {{ doctors.count }} doctors
+                Total <strong>{{ doctors.count }}</strong> specialist doctors available
             </p>
         </div>
     </div>
