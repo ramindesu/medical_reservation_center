@@ -6,7 +6,9 @@ from django.urls import reverse
 from django.contrib import messages
 from .forms import UserRegistrationForm
 from .models import User, Doctor, Patient
+from .models import User, Doctor, Patient
 from Reservations.models import Reservations
+from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
 from Wallet.models import Wallet
@@ -30,8 +32,18 @@ def register(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+            user = form.save(commit=False)
             role = form.cleaned_data['role']
             user.role = role
+            if role == User.Role.PATIENT:
+                user.address = "" 
+            user.save()
+
+           
+            wallet = Wallet.objects.create(balance=0)
+
+            if role == User.Role.DOCTOR:
+                specialty = form.cleaned_data.get('specialty')
             if role == User.Role.PATIENT:
                 user.address = "" 
             user.save()
@@ -58,12 +70,35 @@ def register(request):
             elif role == User.Role.PATIENT:
                 Patient.objects.create(user=user, wallet=wallet)
 
+                    messages.error(request, "Please select your specialty.")
+                    return render(request, 'accounts/register.html', {'form': form})
+
+                medical_code = f"DR-{user.id:04d}"
+
+                Doctor.objects.create(
+                    user=user,
+                    specialty=specialty,
+                    wallet=wallet,
+                    medical_code=medical_code,
+                    monthly_reservation_capacity=50
+                )
+
+            elif role == User.Role.PATIENT:
+                Patient.objects.create(user=user, wallet=wallet)
+
             messages.success(request, "Registration successful! You can now log in.")
             return redirect('login')
         else:
             messages.error(request, "Please fix the errors below.")
+            messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
+
+    return render(request, 'accounts/register.html', {'form': form})
+
+
+
+
 
     return render(request, 'accounts/register.html', {'form': form})
 
