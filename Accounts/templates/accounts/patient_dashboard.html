@@ -75,29 +75,13 @@
     <a href="#" class="btn-glass d-flex align-items-center justify-content-center">
         <i class="bi bi-star"></i> Feedback
     </a>
-    <a href="{% url 'logout' %}" class="btn-glass d-flex align-items-center justify-content-center">
+    <a href="{% url 'home' %}" class="btn-glass d-flex align-items-center justify-content-center">
         <i class="bi bi-box-arrow-right"></i> Logout
     </a>
-    <div class="card-dashboard">
-    <h1><i class="bi bi-person-circle"></i> Welcome {{ request.user.first_name }}</h1>
-    <p>You have {{ reservations.count }} reservations</p>
-
-    <a href="#" class="btn-glass d-flex align-items-center justify-content-center">
-        <i class="bi bi-calendar-check"></i> My Reservations
-    </a>
-    <a href="#" class="btn-glass d-flex align-items-center justify-content-center">
-        <i class="bi bi-people"></i> Doctors List
-    </a>
-    <a href="#" class="btn-glass d-flex align-items-center justify-content-center">
-        <i class="bi bi-star"></i> Feedback
-    </a>
-    <a href="{% url 'logout' %}" class="btn-glass d-flex align-items-center justify-content-center">
-        <i class="bi bi-box-arrow-right"></i> Logout
-    </a>
-
+    
     <hr style="border-color: rgba(255,255,255,0.3); margin: 20px 0;">
 
-    <h3 class="text-white">Change Password</h3>
+    <h3 href="change-password/" class="text-white">Change Password</h3>
     <form method="post">
         {% csrf_token %}
         {{ password_form.as_p }}
