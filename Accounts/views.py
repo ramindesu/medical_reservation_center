@@ -25,38 +25,39 @@ class CustomLoginView(LoginView):
 
 def register(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = UserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             user = form.save(commit=False)
             role = form.cleaned_data['role']
             user.role = role
             if role == User.Role.PATIENT:
                 user.address = ""
+            if 'avatar' in request.FILES:
+                user.avatar = request.FILES['avatar']
             user.save()
 
+            
             wallet = Wallet.objects.create(balance=0)
 
             if role == User.Role.DOCTOR:
                 specialty = form.cleaned_data.get('specialty')
-                if not specialty:
-                    messages.error(request, "Please select your specialty.")
-                    return render(request, 'accounts/register.html', {'form': form})
-
                 medical_code = f"DR-{user.id:04d}"
                 Doctor.objects.create(
                     user=user,
                     specialty=specialty,
                     wallet=wallet,
+                    avatar=user.avatar,
                     medical_code=medical_code,
                     monthly_reservation_capacity=50
                 )
-
-            elif role == User.Role.PATIENT:
+            else: 
                 Patient.objects.create(user=user, wallet=wallet)
 
             messages.success(request, "Registration successful! You can now log in.")
             return redirect('login')
         else:
+           
+            print(form.errors)
             messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
@@ -99,6 +100,7 @@ def doctor_dashboard(request):
 
 def doctors_list(request):
     doctors = Doctor.objects.filter(user__active=True).select_related('user', 'specialty')
+    # doctors = Doctor.objects.filter(user__active=True).exclude(id__isnull=True).select_related('user', 'specialty')
 
     specialty_filter = request.GET.get('specialty')
     if specialty_filter:
