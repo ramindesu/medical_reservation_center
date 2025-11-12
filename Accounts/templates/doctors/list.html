@@ -85,9 +85,10 @@
 
                     
                     <div class="text-center">
-                        <a href="/booking/{{ doctor.id }}/" class="btn btn-book">
+                        <a href="{% url 'booking_page' doctor.user_id %}" class="btn btn-book">
                             <i class="bi bi-calendar-check"></i> Book Appointment
                         </a>
+
                     </div>
                 </div>
             </div>

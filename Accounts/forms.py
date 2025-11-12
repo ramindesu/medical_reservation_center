@@ -3,7 +3,6 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import User
 from Medical_Archive.models import Specialty
 
-
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
         choices=[
@@ -19,19 +18,14 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
+    avatar = forms.ImageField(required=False)
+
     class Meta:
         model = User
         fields = [
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'phone',
-            'address',
-            'password1',
-            'password2',
-            'role',
-            'specialty',
+            'username', 'first_name', 'last_name', 'email',
+            'phone', 'address', 'avatar', 'password1', 'password2',
+            'role', 'specialty',
         ]
 
     def clean(self):
@@ -42,7 +36,3 @@ class UserRegistrationForm(UserCreationForm):
         if role == User.Role.DOCTOR and not specialty:
             raise forms.ValidationError("Please select a specialty for doctor.")
         return cleaned_data
-
-
-
-
