@@ -7,7 +7,8 @@ from django.contrib import messages
 from .forms import UserRegistrationForm
 from .models import User, Doctor
 from Reservations.models import Reservations
-
+from Medical_Archive.models import Specialty
+from django.db.models import Q
 
 
 class CustomLoginView(LoginView):
@@ -90,3 +91,58 @@ def doctor_dashboard(request):
     return render(request, 'accounts/doctor_dashboard.html', context)
 
 
+
+
+
+
+def doctors_list(request):
+    
+    doctors = Doctor.objects.filter(user__active=True).select_related('user', 'specialty')
+    
+    
+    specialty_filter = request.GET.get('specialty')
+    if specialty_filter:
+        doctors = doctors.filter(specialty_id=specialty_filter)
+    
+   
+    search_query = request.GET.get('search')
+    if search_query:
+        doctors = doctors.filter(
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query) |
+            Q(specialty__title__icontains=search_query)
+        )
+    
+    specialties = Specialty.objects.all()
+    return render(request, 'doctors/list.html', {
+        'doctors': doctors,
+        'specialties': specialties
+    })
+
+
+
+
+def booking_page(request, doctor_id):
+   
+    if not request.user.is_authenticated or request.user.role != 'patient':
+        return render(request, 'error.html', {'message': 'Only patients can book appointments'})
+    
+    doctor = get_object_or_404(Doctor, pk=doctor_id, user__active=True)
+    
+    if request.method == 'POST':
+       
+        date = request.POST.get('date')
+        service = request.POST.get('service')
+        
+       
+        reservation = Reservations.objects.create(
+            doctor=doctor,
+            patient=request.user.patient,
+            date=date,
+            service=service,
+            status=Reservations.Status.WAITING
+        )
+        messages.success(request, "Appointment booked successfully!")
+        return redirect('patient_dashboard')
+    
+    return render(request, 'booking/booking.html', {'doctor': doctor, 'doctor_id': doctor_id})
