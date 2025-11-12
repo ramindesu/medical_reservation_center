@@ -1,9 +1,5 @@
 from django import forms
 
-
-from django import forms
-
-
 class Form(forms.Form):
     date = forms.DateField(widget=forms.SelectDateWidget())
     service = forms.CharField(
