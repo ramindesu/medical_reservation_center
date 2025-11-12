@@ -18,13 +18,13 @@ def contact_us(request):
     return render(request, 'contact-us.html')
 
 
-def doctors(request, doctor_id):
+def single_specialist(request, doctor_id):
     doctor = get_object_or_404(Doctor, id=doctor_id)
 
     if request.method == 'POST':
         form = Form(request.POST)
         if form.is_valid():
-            patient = get_object_or_404(Patient, user=request.user)
+            patient = Patient.objects.first()
             reservation = Reservations.objects.create(
                 patient=patient,
                 doctor=doctor,
