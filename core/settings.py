@@ -38,8 +38,8 @@ LOGIN_URL = '/accounts/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
-ALLOW_PATIENT_REGISTRATION = True
-ALLOW_DOCTOR_REGISTRATION = True
+ALLOW_PATIENT_REGISTRATION = False
+ALLOW_DOCTOR_REGISTRATION = False
 
 # Application definition
 

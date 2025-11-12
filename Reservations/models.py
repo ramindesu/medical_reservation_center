@@ -19,7 +19,8 @@ class Reservations(models.Model):
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.WAITING)
 
     def __str__(self):
-        return f"Reservation: {self.patient.first_name} → {self.doctor.first_name} ({self.status})"
+        return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
+
 
     class Meta:
         verbose_name = 'Reservation'
