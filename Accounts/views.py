@@ -5,7 +5,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
 from .forms import UserRegistrationForm
-from .models import User
+from .models import User, Doctor
 from Reservations.models import Reservations
 
 
@@ -75,7 +75,18 @@ def patient_dashboard(request):
 
 @login_required
 def doctor_dashboard(request):
-    if not hasattr(request.user, 'doctor'):
-        return render(request, 'error.html', {'message': 'Access denied'})
-    reservations = Reservations.objects.filter(doctor=request.user.doctor).order_by('date', 'created_at')
-    return render(request, 'accounts/doctor_dashboard.html', {'reservations': reservations})
+    try:
+        doctor_instance = request.user.doctor
+    except Doctor.DoesNotExist:
+        return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
+
+    
+    reservations = Reservations.objects.filter(doctor=doctor_instance).order_by('date', 'created_at')
+
+    context = {
+        'doctor': doctor_instance,
+        'reservations': reservations,
+    }
+    return render(request, 'accounts/doctor_dashboard.html', context)
+
+
