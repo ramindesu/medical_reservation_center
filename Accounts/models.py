@@ -32,6 +32,7 @@ class Doctor(models.Model):
     specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
     wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to='Avatar/')
 
     def save(self, *args, **kwargs):
         self.user.role = User.Role.DOCTOR
