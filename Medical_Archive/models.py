@@ -1,5 +1,5 @@
 from django.db import models
-from Accounts.models import Patient
+from Accounts.models import patient 
 
 
 class Specialty(models.Model):

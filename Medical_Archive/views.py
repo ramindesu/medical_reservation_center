@@ -1,17 +1,22 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect,get_object_or_404
 from .models import Specialty
-from Accounts.models import Doctor
+from .forms import ReservationForm
+from Accounts import Doctor
 
-def specialties(request):
-    specialties = Specialty.objects.all()
-    return render(request, 'Medical_Archive/specialties.html', {'specialties': specialties})
-
-# def doctors_by_specialty(request, specialty_id):
-#     specialty = get_object_or_404(Specialty, id=specialty_id)
-#     doctors = Doctor.objects.filter(specialty=specialty)
-#     return render(request, 'Medical_Archive/doctors_by_specialty.html', {
-#         'specialty': specialty,
-#         'doctors': doctors
-#     })
-
-
+def specialty_detail_view(request, specialty_id):
+    specialty = get_object_or_404(Specialty, id=specialty_id)
+    doctor = Doctor.objects.filter(specialty=specialty).first()
+    if request.method == 'POST':
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.doctor = doctor
+            reservation.save()
+            return redirect('home')
+    else:
+        form = ReservationForm()
+    return render(request, 'medicalarchive/specialty_detail.html', {
+        'specialty': specialty,
+        'form': form,
+        'doctor': doctor
+    })
