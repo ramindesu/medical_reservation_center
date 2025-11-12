@@ -5,10 +5,12 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
 from .forms import UserRegistrationForm
-from .models import User, Doctor
+from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Medical_Archive.models import Specialty
 from django.db.models import Q
+from Wallet.models import Wallet
+
 
 
 class CustomLoginView(LoginView):
@@ -110,6 +112,9 @@ def doctor_dashboard(request):
         'reservations': reservations,
     }
     return render(request, 'accounts/doctor_dashboard.html', context)
+
+
+
 
 
 
