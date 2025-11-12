@@ -22,10 +22,9 @@ class CustomLoginView(LoginView):
         return '/'
 
 
-
-
-
 def register(request):
+    role = 'patient'
+
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
@@ -37,15 +36,17 @@ def register(request):
             if role == 'doctor':
                 if not specialty:
                     messages.error(request, "Please enter your specialty.")
-                    return render(request, 'accounts/register.html', {'form': form})
+                    return render(request, 'accounts/register.html', {'form': form, 'role': role})
                 user.specialty = specialty
             user.save()
             messages.success(request, "Registration successful! You can now log in.")
             return redirect('login')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = UserRegistrationForm()
 
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form, 'role': role})
 
 
 
@@ -61,10 +62,14 @@ def home_redirect(request):
 
 @login_required
 def patient_dashboard(request):
-    if not hasattr(request.user, 'patient'):
+    if request.user.role != 'patient':
         return render(request, 'error.html', {'message': 'Access denied'})
-    reservations = Reservations.objects.filter(patient=request.user.patient).order_by('date', 'created_at')
-    return render(request, 'accounts/patient_dashboard.html', {'reservations': reservations})
+    
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'accounts/patient_dashboard.html', context)
+
 
 
 
