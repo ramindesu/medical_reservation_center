@@ -5,13 +5,10 @@ from Wallet.models import Wallet
 
 
 class User(AbstractUser):
-    # first_name = models.CharField(max_length=60)
-    # last_name = models.CharField(max_length=60)
-    # email = models.EmailField(unique=True)
     address = models.TextField()
     phone = models.CharField(max_length=15)
     active = models.BooleanField(default=True)
-    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
+    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)], default=0)
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
@@ -27,21 +24,23 @@ class User(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
         ordering = ["first_name"]
-        # abstract = True
 
 
-class Doctor(User):
+class Doctor(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     medical_code = models.CharField(max_length=30, unique=True)
     specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
     wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE)
+    avatar = models.ImageField(upload_to='Avatar/')
 
     def save(self, *args, **kwargs):
-        self.role = self.Role.DOCTOR
+        self.user.role = User.Role.DOCTOR
+        self.user.save()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Dr. {self.first_name} {self.last_name}"
+        return f"Dr. {self.user.first_name}"
 
     class Meta:
         verbose_name = "Doctor"
@@ -49,24 +48,28 @@ class Doctor(User):
         ordering = ["specialty"]
 
 
-class Patient(User):
+class Patient(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE)
     def save(self, *args, **kwargs):
-        self.role = self.Role.PATIENT
+        self.user.role = User.Role.PATIENT
+        self.user.save()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.user.first_name}"
 
     class Meta:
         verbose_name = "Patient"
         verbose_name_plural = "Patients"
-        ordering = ["first_name"]
+        # ordering = ["first_name"]
 
 
-class Admin(User):
+class Admin(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     def save(self, *args, **kwargs):
-        self.role = self.Role.ADMIN
+        self.user.role = User.Role.ADMIN
+        self.user.save()
         super().save(*args, **kwargs)
 
     class Meta:

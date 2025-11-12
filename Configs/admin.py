@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Config , Blacklist , Doctor , Patient 
+from .models import Config , Blacklist 
 
 @admin.register(Config)
 class ConfigAdmin(admin.ModelAdmin):
@@ -16,15 +16,16 @@ class BlacklistAdmin(admin.ModelAdmin):
     list_display = ['doctor', 'patient', 'reason', 'active','get_doctor_specialty']
     list_filter = ['active', 'doctor__specialty']
     search_fields = [
-        'doctor__first_name', 
-        'doctor__last_name',
-        'patient__first_name', 
-        'patient__last_name',
+        'doctor__user__first_name', 
+        'doctor__user__last_name',
+        'patient__user__first_name', 
+        'patient__user__last_name',
         'reason'
     ]
     list_editable = ['active']
     ordering = ['-id']
     
     def get_doctor_specialty(self, obj):
-        return obj.Doctor.specialty.title
+        return obj.doctor.specialty.title
+  
 

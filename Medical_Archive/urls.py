@@ -1,6 +1,8 @@
+
 from django.urls import path
-from .views import specialty_detail_view
+from . import views
 
 urlpatterns = [
-    path('specialty/<int:specialty_id>/', specialty_detail_view, name='specialty_detail'),
+    path('specialties/', views.specialties, name='specialties'),
+    # path('specialties/<int:specialty_id>/', views.doctors_by_specialty, name='doctors_by_specialty'),
 ]
