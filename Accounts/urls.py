@@ -18,8 +18,6 @@ urlpatterns = [
 
  
     path('register/', views.register, name='register'),
-    # path('register/patient/', views.patient_register_view, name='register_patient'),
-    # path('register/doctor/', views.doctor_register_view, name='register_doctor'),
 
    
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),

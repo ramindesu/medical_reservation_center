@@ -50,6 +50,7 @@
             color: white;
             transition: 0.2s;
             margin-bottom: 10px;
+            text-decoration: none;
         }
 
         .btn-glass:hover {
@@ -85,6 +86,10 @@
         <a href="#" class="btn-glass">
             <i class="bi bi-bar-chart-line"></i>
             <span>Statistics</span>
+        </a>
+        <a href="{% url 'change_password' %}" class="btn-glass">
+            <i class="bi bi-key"></i>
+            <span>Change Password</span>
         </a>
         <a href="{% url 'home' %}" class="btn-glass">
             <i class="bi bi-box-arrow-right"></i>
