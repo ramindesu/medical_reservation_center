@@ -38,6 +38,23 @@
             background: rgba(76, 175, 80, 0.5);
             transform: translateY(-2px);
         }
+        .search-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        .search-card input,
+        .search-card select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: black;
+        }
+        .search-card input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
     </style>
 </head>
 <body>
@@ -46,6 +63,36 @@
         <div class="text-center text-white mb-5">
             <h1 class="display-4"><i class="bi bi-heart-pulse"></i> Our Specialist Doctors</h1>
             <p class="lead">Click on any doctor to book an appointment</p>
+        </div>
+
+        
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2">
+                <div class="search-card">
+                    <form method="get" class="d-flex gap-2 flex-wrap">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            class="form-control" 
+                            placeholder="Search by name or specialty..." 
+                            value="{{ request.GET.search }}">
+                        
+                        <select name="specialty" class="form-select">
+                            <option value="">All Specialties</option>
+                            {% for specialty in specialties %}
+                                <option value="{{ specialty.id }}" 
+                                    {% if request.GET.specialty == specialty.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ specialty.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit" class="btn btn-book">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
 
         
@@ -58,12 +105,10 @@
                         <i class="bi bi-person-circle display-1"></i>
                     </div>
                     
-                    
                     <h5 class="text-center">Dr. {{ doctor.user.get_full_name }}</h5>
                     <p class="text-center mb-2">
                         <i class="bi bi-stethoscope"></i> {{ doctor.specialty.title }}
                     </p>
-                    
                     
                     <div class="text-center small mb-3">
                         <p class="mb-1">
@@ -76,26 +121,22 @@
                         {% endif %}
                     </div>
 
-                    
                     <div class="text-center mb-3">
                         <span class="badge bg-warning text-dark">
                             <i class="bi bi-star-fill"></i> {{ doctor.user.rate }}/10
                         </span>
                     </div>
 
-                    
                     <div class="text-center">
                         <a href="{% url 'detail_page' doctor.user_id %}" class="btn btn-book">
                             <i class="bi bi-calendar-check"></i> Info
                         </a>
-
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
 
-        
         <div class="text-center text-white mt-4">
             <p>
                 <i class="bi bi-info-circle"></i> 

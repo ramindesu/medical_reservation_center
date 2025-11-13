@@ -137,7 +137,7 @@ def doctor_dashboard(request):
 
 def doctors_list(request):
     doctors = Doctor.objects.filter(user__active=True).select_related('user', 'specialty')
-    # doctors = Doctor.objects.filter(user__active=True).exclude(id__isnull=True).select_related('user', 'specialty')
+    
 
     specialty_filter = request.GET.get('specialty')
     if specialty_filter:
