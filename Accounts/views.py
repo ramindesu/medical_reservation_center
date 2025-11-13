@@ -27,22 +27,50 @@ class CustomLoginView(LoginView):
 
 
 def register(request):
+    
+    allow_doctor = getattr(settings, 'ALLOW_DOCTOR_REGISTRATION', True)
+    allow_patient = getattr(settings, 'ALLOW_PATIENT_REGISTRATION', True)
+
+ 
+    if not allow_doctor and not allow_patient:
+        return render(request, 'accounts/register.html', {
+            'allow_doctor': allow_doctor,
+            'allow_patient': allow_patient,
+            'form': None
+        })
+
+  
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST, request.FILES)
         form = UserRegistrationForm(request.POST, request.FILES)
+
         if form.is_valid():
             user = form.save(commit=False)
             user = form.save(commit=False)
             role = form.cleaned_data['role']
+
+            
+            if role == User.Role.DOCTOR and not allow_doctor:
+                messages.error(request, "Doctor registration is currently closed.")
+                return redirect('register')
+            elif role == User.Role.PATIENT and not allow_patient:
+                messages.error(request, "Patient registration is currently closed.")
+                return redirect('register')
+
+          
+            user = form.save(commit=False)
             user.role = role
+
             if role == User.Role.PATIENT:
                 user.address = ""
             if 'avatar' in request.FILES:
                 user.avatar = request.FILES['avatar']
             if role == User.Role.PATIENT:
-                user.address = ""
+                user.address = "" 
+
             if 'avatar' in request.FILES:
                 user.avatar = request.FILES['avatar']
+
             user.save()
 
             
@@ -66,6 +94,7 @@ def register(request):
             
             wallet = Wallet.objects.create(balance=0)
 
+        
             if role == User.Role.DOCTOR:
                 specialty = form.cleaned_data.get('specialty')
                 medical_code = f"DR-{user.id:04d}"
@@ -73,24 +102,34 @@ def register(request):
                     user=user,
                     specialty=specialty,
                     wallet=wallet,
-                    avatar=user.avatar,
                     medical_code=medical_code,
                     monthly_reservation_capacity=50
                 )
-            else: 
+            else:
                 Patient.objects.create(user=user, wallet=wallet)
 
             messages.success(request, "Registration successful! You can now log in.")
             return redirect('login')
+
         else:
-           
-            print(form.errors)
             messages.error(request, "Please fix the errors below.")
            
             print(form.errors)
             messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
+
+    
+    if not allow_doctor:
+        form.fields['role'].choices = [(User.Role.PATIENT, "Patient")]
+    elif not allow_patient:
+        form.fields['role'].choices = [(User.Role.DOCTOR, "Doctor")]
+
+    return render(request, 'accounts/register.html', {
+        'form': form,
+        'allow_doctor': allow_doctor,
+        'allow_patient': allow_patient,
+    })
 
     return render(request, 'accounts/register.html', {'form': form})
     return render(request, 'accounts/register.html', {'form': form})
