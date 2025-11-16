@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, DoctorReservationForm
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from .forms import DoctorReservationForm
+
 
 
 class CustomLoginView(LoginView):
