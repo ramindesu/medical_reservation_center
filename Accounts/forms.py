@@ -4,6 +4,12 @@ from .models import User
 from Medical_Archive.models import Specialty
 from Reservations.models import Reservations
 
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
+from Medical_Archive.models import Specialty
+from Reservations.models import Reservations
+
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
         choices=[
@@ -17,6 +23,11 @@ class UserRegistrationForm(UserCreationForm):
         queryset=Specialty.objects.all(),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    address = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
     avatar = forms.ImageField(required=False)
@@ -35,10 +46,9 @@ class UserRegistrationForm(UserCreationForm):
         specialty = cleaned_data.get("specialty")
 
         if role == User.Role.DOCTOR and not specialty:
-            raise forms.ValidationError("Please select a specialty for doctor.")
+            self.add_error("specialty", "Please select a specialty for doctor.")
+
         return cleaned_data
-
-
 
 
 

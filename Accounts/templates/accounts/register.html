@@ -41,27 +41,27 @@
             border: none;
             color: white;
             font-weight: 600;
-            transition: 0.3s;
         }
-        .btn-glass:hover { background: rgba(255,255,255,0.4); }
-        .disabled-message {
-            text-align: center;
-            padding: 30px 0;
+        .btn-glass:hover {
+            background: rgba(255,255,255,0.4);
         }
+        .disabled-message { text-align: center; padding: 30px 0; }
     </style>
 </head>
 <body>
+
 <div class="glass-card">
     <h1><i class="bi bi-person-plus"></i> Register</h1>
 
     {% if not allow_doctor and not allow_patient %}
         <div class="disabled-message">
             <h4><i class="bi bi-lock-fill"></i> Registration Closed</h4>
-            <p>New user registration is currently disabled. Please try again later.</p>
-            <a href="{% url 'home' %}" class="btn-glass mt-3">
+            <p>New registrations are disabled. Try later.</p>
+            <a href="{% url 'home' %}" class="btn-glass">
                 <i class="bi bi-house-door"></i> Back to Home
             </a>
         </div>
+
     {% else %}
         {% if messages %}
             {% for message in messages %}
@@ -72,14 +72,14 @@
         {% if form.errors %}
             <div class="alert alert-danger">
                 <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
                 </ul>
             </div>
         {% endif %}
@@ -91,12 +91,22 @@
             {{ form.last_name.label_tag }} {{ form.last_name }}
             {{ form.email.label_tag }} {{ form.email }}
             {{ form.phone.label_tag }} {{ form.phone }}
-            <div id="address-div">{{ form.address.label_tag }} {{ form.address }}</div>
+
+            <div id="address-div">
+                {{ form.address.label_tag }} {{ form.address }}
+            </div>
+
             {{ form.password1.label_tag }} {{ form.password1 }}
             {{ form.password2.label_tag }} {{ form.password2 }}
+
             {{ form.role.label_tag }} {{ form.role }}
-            <div id="specialty-div" style="display:none;">{{ form.specialty.label_tag }} {{ form.specialty }}</div>
+
+            <div id="specialty-div" style="display:none;">
+                {{ form.specialty.label_tag }} {{ form.specialty }}
+            </div>
+
             {{ form.avatar.label_tag }} {{ form.avatar }}
+
             <button type="submit" class="btn-glass mt-3">Register</button>
         </form>
     {% endif %}
@@ -108,19 +118,18 @@
     const addressDiv = document.getElementById('address-div');
 
     function toggleFields() {
-        if (roleSelect && roleSelect.value === 'doctor') {
+        if (roleSelect.value === 'doctor') {
             specialtyDiv.style.display = 'block';
             addressDiv.style.display = 'block';
-        } else if (roleSelect) {
+        } else {
             specialtyDiv.style.display = 'none';
             addressDiv.style.display = 'none';
         }
     }
 
-    if (roleSelect) {
-        toggleFields();
-        roleSelect.addEventListener('change', toggleFields);
-    }
+    toggleFields();
+    roleSelect.addEventListener('change', toggleFields);
 </script>
+
 </body>
 </html>
