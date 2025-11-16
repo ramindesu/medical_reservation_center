@@ -4,11 +4,6 @@ from .models import User
 from Medical_Archive.models import Specialty
 from Reservations.models import Reservations
 
-from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from .models import User
-from Medical_Archive.models import Specialty
-from Reservations.models import Reservations
 
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
