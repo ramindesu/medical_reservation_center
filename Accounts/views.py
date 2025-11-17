@@ -1,3 +1,4 @@
+from itertools import count
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -10,6 +11,7 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
+from datetime import date
 
 
 class CustomLoginView(LoginView):
@@ -191,6 +193,20 @@ def doctor_reservation(request, doctor_id):
 
     if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Only patients can book appointments.'})
+    patient = request.user.patient
+    max_reservations_per_month = 5
+    today = date.today()
+    count_reservations = Reservations.objects.filter(
+        patient=patient,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    if count_reservations >= max_reservations_per_month:
+        messages.error(
+            request,
+            f"You have reached the maximum number of {max_reservations_per_month} reservations for this month."
+        )
+        return redirect('patient_dashboard')
 
     if request.method == "POST":
         form = DoctorReservationForm(request.POST)
