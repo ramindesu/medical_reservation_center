@@ -18,6 +18,8 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return '/admin/'
         if user.role == User.Role.DOCTOR:
             return reverse('doctor_dashboard')
         elif user.role == User.Role.PATIENT:
