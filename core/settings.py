@@ -33,9 +33,13 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'Accounts.User'
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+ALLOW_PATIENT_REGISTRATION = True
+ALLOW_DOCTOR_REGISTRATION = True
 
 # Application definition
 
@@ -92,8 +96,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'medical_db'),
+<<<<<<< HEAD
         'USER': os.getenv('DB_USER', 'medical_user'),
         'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
+=======
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
+>>>>>>> develop
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
@@ -140,3 +149,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/Avatar/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'Avatar')
