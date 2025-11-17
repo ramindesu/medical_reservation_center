@@ -233,6 +233,7 @@ def doctor_reservation(request, doctor_id):
     })
 
 
+@login_required
 def edit_pateint_profile(request):
     if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Access denied'})
@@ -254,6 +255,7 @@ def edit_pateint_profile(request):
     return render(request, 'accounts/edit_patient_profile.html', {'form': form})
 
 
+@login_required
 def add_patient_specialty(request):
     specialties = Specialty.objects.all()
     if request.method == 'POST':
@@ -267,6 +269,7 @@ def add_patient_specialty(request):
     return render(request, 'accounts/add_patient_specialty.html', {'specialties': specialties})
 
 
+@login_required
 def patient_request_reservation(request):
     if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Access denied'})
@@ -306,4 +309,3 @@ def add_feedback(request, reservation_id):
         return redirect('patient_reservations')
 
     return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
-
