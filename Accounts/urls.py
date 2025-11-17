@@ -1,6 +1,9 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import request_appointment
+
+
 
 urlpatterns = [
     
@@ -21,8 +24,10 @@ urlpatterns = [
    
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
+    path('request/', request_appointment, name='request_appointment')
 
-    
+
     path('change-password/', auth_views.PasswordChangeView.as_view(
         template_name='accounts/change_password.html',
         success_url='/accounts/change-password/done/'

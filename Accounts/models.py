@@ -51,6 +51,8 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE, blank=True, null=True)
+    monthly_limit = models.IntegerField(default=5)
+    
     def save(self, *args, **kwargs):
         self.user.role = User.Role.PATIENT
         self.user.save()

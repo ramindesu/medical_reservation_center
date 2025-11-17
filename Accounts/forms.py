@@ -62,3 +62,29 @@ class DoctorReservationForm(forms.ModelForm):
             'date': 'Date',
             'service': 'Service',
         }
+
+
+class PatientProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'avatar']
+
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class PatientReservationForm(forms.ModelForm):
+    class Meta:
+        model = Reservations
+        fields = ['doctor', 'date', 'service']
+        
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
+            'doctor': forms.Select(attrs={'class': 'form-select'}),
+        }

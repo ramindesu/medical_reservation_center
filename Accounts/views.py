@@ -10,8 +10,8 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-
-
+from .forms import PatientProfileEditForm
+from datetime import datetime
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -218,3 +218,40 @@ def doctor_reservation(request, doctor_id):
         'doctor': doctor,
     })
 
+@login_required
+def edit_patient_profile(request):
+    if request.method == 'POST':
+        form = PatientProfileEditForm(request.user, request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('patient_dashboard')
+    else:
+        form = PatientProfileEditForm(instance=request.user)
+    return render(request, 'accounts/edit_profile.html', {'form': form})
+
+
+
+@login_required
+def request_appointment(request):
+    patient = Patient.objects.get(user=request.user)
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+    confirmed_count = Reservations.objects.filter( patient=patient, date__month=current_month,date__year=current_year,status='approved').count()
+
+    if request.method == 'POST':
+        form = PatientReservationForm(request.POST)
+        if form.is_valid():
+            if confirmed_count >= patient.monthly_limit:
+                messages.error(request, "You have reached your monthly appointment limit.")
+            else:
+                reservation = form.save(commit=False)
+                reservation.patient = patient
+                reservation.status = 'pending'
+                reservation.save()
+                messages.success(request, "Your appointment request has been submitted.")
+                return redirect('patient_dashboard')
+    else:
+        form = PatientReservationForm()
+
+    return render(request, 'reservations/request_appointment.html', {'form': form})
