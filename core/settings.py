@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'Wallet',
     'Logs',
     'Front'
-    ]
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,7 +70,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -92,8 +92,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'medical_db'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'USER': os.getenv('DB_USER', 'medical_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
