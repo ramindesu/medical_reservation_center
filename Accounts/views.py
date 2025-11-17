@@ -1,11 +1,12 @@
 from itertools import count
+import re
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm, DoctorReservationForm, PatientProfileForm
+from .forms import FeedBackForm, UserRegistrationForm, DoctorReservationForm, PatientProfileForm
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Wallet.models import Wallet
@@ -275,3 +276,34 @@ def patient_request_reservation(request):
         patient=patient).order_by('-created_at')
 
     return render(request, 'accounts/patient_reservations.html', {'reservations': reservations})
+
+
+@login_required
+def add_feedback(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Access denied'})
+    if reservation.patient.user != request.user:
+        return render(request, 'error.html', {'message': 'You can only add feedback for your own reservations.'})
+    if reservation.status != Reservations.Status.APPROVED:
+        return render(request, 'error.html', {'message': 'Feedback can only be added for approved reservations.'})
+
+    if request.method == 'POST':
+        form = FeedBackForm(request.POST)
+        if form.is_valid():
+            rating = form.cleaned_data['rating']
+            comment = form.cleaned_data['comment']
+            feedback = form.save(commit=False)
+            feedback.reservation = reservation
+            feedback.doctor = reservation.doctor
+            feedback.patient = reservation.patient
+            feedback.rating = rating
+            feedback.comment = comment
+            feedback.save()
+
+        messages.success(request, "Thank you for your feedback!")
+        return redirect('patient_reservations')
+
+    return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
+

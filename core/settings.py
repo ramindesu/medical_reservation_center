@@ -96,13 +96,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'medical_db'),
-<<<<<<< HEAD
         'USER': os.getenv('DB_USER', 'medical_user'),
         'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
-=======
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
->>>>>>> develop
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
@@ -151,4 +148,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/Avatar/'
-MEDIA_ROOT = os.path.join(BASE_DIR,'Avatar')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'Avatar')

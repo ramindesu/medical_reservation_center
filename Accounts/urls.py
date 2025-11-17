@@ -12,6 +12,14 @@ urlpatterns = [
 
 
     path('patient/edit/', views.edit_pateint_profile, name='patient_edit'),
+    path('patient/reservations/', views.patient_request_reservation,
+         name='patient_reservations'),
+    path(
+        'feedback/add/<int:reservation_id>/',
+        views.add_feedback,
+        name='add_feedback'
+    ),
+
 
 
 
