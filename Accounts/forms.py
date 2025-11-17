@@ -41,24 +41,47 @@ class UserRegistrationForm(UserCreationForm):
         specialty = cleaned_data.get("specialty")
 
         if role == User.Role.DOCTOR and not specialty:
-            self.add_error("specialty", "Please select a specialty for doctor.")
+            self.add_error(
+                "specialty", "Please select a specialty for doctor.")
 
         return cleaned_data
-
-
 
 
 class DoctorReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
         fields = ['date', 'service']
-        
+
         widgets = {
-            
+
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
         }
         labels = {
             'date': 'Date',
             'service': 'Service',
+        }
+
+
+class PatientProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name',
+                  'email', 'phone', 'address', 'avatar']
+
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control glass-input'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control glass-input'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control glass-input'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control glass-input'}),
+            'address': forms.TextInput(attrs={'class': 'form-control glass-input'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control glass-input'}),
+        }
+        labels = {
+            'first_name': 'First Name',
+            'last_name': 'Last Name',
+            'email': 'Email',
+            'phone': 'Phone Number',
+            'address': 'Address',
+            'avatar': 'Profile Picture',
         }
