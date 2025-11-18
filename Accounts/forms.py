@@ -25,13 +25,13 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
 
-    avatar = forms.ImageField(required=False)
+    # avatar = forms.ImageField(required=False)
 
     class Meta:
         model = User
         fields = [
             'username', 'first_name', 'last_name', 'email',
-            'phone', 'address', 'avatar', 'password1', 'password2',
+            'phone', 'address', 'password1', 'password2',
             'role', 'specialty',
         ]
 
@@ -67,7 +67,7 @@ class DoctorReservationForm(forms.ModelForm):
 class PatientProfileEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'avatar']
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address',]
 
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),

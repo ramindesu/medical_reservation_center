@@ -26,7 +26,6 @@ class CustomLoginView(LoginView):
             return reverse('patient_dashboard')
         return '/'
 
-
 def register(request):
 
     allow_doctor = getattr(settings, 'ALLOW_DOCTOR_REGISTRATION', True)
@@ -53,15 +52,14 @@ def register(request):
                 messages.error(request, "Patient registration is currently closed.")
                 return redirect('register')
 
+
             user = form.save(commit=False)
             user.role = role
-
-            if 'avatar' in request.FILES:
-                user.avatar = request.FILES['avatar']
-
             user.save()
 
+
             wallet = Wallet.objects.create(balance=0)
+
 
             if role == User.Role.DOCTOR:
                 specialty = form.cleaned_data['specialty']
@@ -73,7 +71,9 @@ def register(request):
                     wallet=wallet,
                     medical_code=medical_code,
                     monthly_reservation_capacity=50,
+                    avatar=request.FILES.get('avatar')   
                 )
+
 
             else:
                 Patient.objects.create(user=user, wallet=wallet)
@@ -83,6 +83,7 @@ def register(request):
 
         else:
             messages.error(request, "Please fix the errors below.")
+
     else:
         form = UserRegistrationForm()
 
@@ -97,8 +98,6 @@ def register(request):
         'allow_doctor': allow_doctor,
         'allow_patient': allow_patient,
     })
-
-
 
 def home_redirect(request):
     if request.user.is_authenticated:
