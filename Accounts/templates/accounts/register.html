@@ -61,7 +61,6 @@
                 <i class="bi bi-house-door"></i> Back to Home
             </a>
         </div>
-
     {% else %}
         {% if messages %}
             {% for message in messages %}
@@ -86,13 +85,14 @@
 
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+
             {{ form.username.label_tag }} {{ form.username }}
             {{ form.first_name.label_tag }} {{ form.first_name }}
             {{ form.last_name.label_tag }} {{ form.last_name }}
             {{ form.email.label_tag }} {{ form.email }}
             {{ form.phone.label_tag }} {{ form.phone }}
 
-            <div id="address-div">
+            <div id="address-div" style="display:none;">
                 {{ form.address.label_tag }} {{ form.address }}
             </div>
 
@@ -105,7 +105,11 @@
                 {{ form.specialty.label_tag }} {{ form.specialty }}
             </div>
 
-            {{ form.avatar.label_tag }} {{ form.avatar }}
+            <div id="avatar-div" style="display:none;">
+                {% if form.avatar %}
+                    {{ form.avatar.label_tag }} {{ form.avatar }}
+                {% endif %}
+            </div>
 
             <button type="submit" class="btn-glass mt-3">Register</button>
         </form>
@@ -116,14 +120,17 @@
     const roleSelect = document.getElementById('id_role');
     const specialtyDiv = document.getElementById('specialty-div');
     const addressDiv = document.getElementById('address-div');
+    const avatarDiv = document.getElementById('avatar-div');
 
     function toggleFields() {
         if (roleSelect.value === 'doctor') {
             specialtyDiv.style.display = 'block';
             addressDiv.style.display = 'block';
+            avatarDiv.style.display = 'block';
         } else {
             specialtyDiv.style.display = 'none';
             addressDiv.style.display = 'none';
+            avatarDiv.style.display = 'none';
         }
     }
 
