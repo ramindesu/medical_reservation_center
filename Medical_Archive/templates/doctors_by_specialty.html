@@ -93,7 +93,6 @@
     <div class="container">
         <h1><i class="bi bi-person-lines-fill"></i> Doctors in {{ specialty.title }}</h1>
         <p class="mb-4">Here are the available doctors for this specialty:</p>
-
         {% if doctors %}
             {% for doctor in doctors %}
                 <div class="doctor-card">
@@ -109,9 +108,30 @@
             <p>No doctors available for this specialty.</p>
         {% endif %}
 
-        <a href="{% url 'specialties' %}" class="back-btn">
+
+        <hr class="my-4" style="border-color: rgba(255,255,255,0.4);">
+
+        <h3 class="mb-3"><i class="bi bi-calendar-check"></i> Send Reservation Request</h3>
+        <p>You can send a reservation request to ALL doctors of this specialty.</p>
+
+        <form method="POST" class="text-start">
+            {% csrf_token %}
+            
+            <div class="mb-3">
+                {{ form.date.label_tag }}
+                {{ form.date }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.service.label_tag }}
+                {{ form.service }}
+            </div>
+
+            <button type="submit" class="btn btn-light btn-lg mt-2">
+                <i class="bi bi-send"></i> Send Request to All Doctors
+            </button>
+        </form>
+
+        <a href="{% url 'specialties' %}" class="back-btn d-block mt-4">
             <i class="bi bi-arrow-left-circle"></i> Back to Specialties
         </a>
-    </div>
-</body>
-</html>

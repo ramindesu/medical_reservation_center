@@ -4,6 +4,7 @@ from .models import User
 from Medical_Archive.models import Specialty
 from Reservations.models import Reservations
 
+
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
         choices=[
@@ -19,13 +20,18 @@ class UserRegistrationForm(UserCreationForm):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
-    avatar = forms.ImageField(required=False)
+    address = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    
+    avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
         fields = [
             'username', 'first_name', 'last_name', 'email',
-            'phone', 'address', 'avatar', 'password1', 'password2',
+            'phone', 'address', 'password1', 'password2',
             'role', 'specialty',
         ]
 
@@ -35,10 +41,9 @@ class UserRegistrationForm(UserCreationForm):
         specialty = cleaned_data.get("specialty")
 
         if role == User.Role.DOCTOR and not specialty:
-            raise forms.ValidationError("Please select a specialty for doctor.")
+            self.add_error("specialty", "Please select a specialty for doctor.")
+
         return cleaned_data
-
-
 
 
 
@@ -56,4 +61,30 @@ class DoctorReservationForm(forms.ModelForm):
         labels = {
             'date': 'Date',
             'service': 'Service',
+        }
+
+
+class PatientProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address',]
+
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+class PatientReservationForm(forms.ModelForm):
+    class Meta:
+        model = Reservations
+        fields = ['doctor', 'date', 'service']
+        
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
+            'doctor': forms.Select(attrs={'class': 'form-select'}),
         }

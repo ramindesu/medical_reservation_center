@@ -5,41 +5,41 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
+from .forms import UserRegistrationForm, DoctorReservationForm
 from .forms import UserRegistrationForm
 from .models import User, Doctor, Patient
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from .forms import DoctorReservationForm
-
+from .forms import PatientProfileEditForm ,PatientReservationForm
+from datetime import datetime
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
 
     def get_success_url(self):
         user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return '/admin/'
         if user.role == User.Role.DOCTOR:
             return reverse('doctor_dashboard')
         elif user.role == User.Role.PATIENT:
             return reverse('patient_dashboard')
         return '/'
 
-
 def register(request):
-    
+
     allow_doctor = getattr(settings, 'ALLOW_DOCTOR_REGISTRATION', True)
     allow_patient = getattr(settings, 'ALLOW_PATIENT_REGISTRATION', True)
 
- 
     if not allow_doctor and not allow_patient:
         return render(request, 'accounts/register.html', {
+            'form': None,
             'allow_doctor': allow_doctor,
-            'allow_patient': allow_patient,
-            'form': None
+            'allow_patient': allow_patient
         })
 
-  
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST, request.FILES)
         form = UserRegistrationForm(request.POST, request.FILES)
@@ -49,15 +49,15 @@ def register(request):
             user = form.save(commit=False)
             role = form.cleaned_data['role']
 
-            
             if role == User.Role.DOCTOR and not allow_doctor:
                 messages.error(request, "Doctor registration is currently closed.")
                 return redirect('register')
-            elif role == User.Role.PATIENT and not allow_patient:
+
+            if role == User.Role.PATIENT and not allow_patient:
                 messages.error(request, "Patient registration is currently closed.")
                 return redirect('register')
 
-          
+
             user = form.save(commit=False)
             user.role = role
 
@@ -72,6 +72,8 @@ def register(request):
                 user.avatar = request.FILES['avatar']
 
             user.save()
+
+
 
             
             wallet = Wallet.objects.create(balance=0)
@@ -94,17 +96,21 @@ def register(request):
             
             wallet = Wallet.objects.create(balance=0)
 
-        
+
             if role == User.Role.DOCTOR:
-                specialty = form.cleaned_data.get('specialty')
+                specialty = form.cleaned_data['specialty']
                 medical_code = f"DR-{user.id:04d}"
+
                 Doctor.objects.create(
                     user=user,
                     specialty=specialty,
                     wallet=wallet,
                     medical_code=medical_code,
-                    monthly_reservation_capacity=50
+                    monthly_reservation_capacity=50,
+                    avatar=request.FILES.get('avatar')   
                 )
+
+
             else:
                 Patient.objects.create(user=user, wallet=wallet)
 
@@ -113,16 +119,17 @@ def register(request):
 
         else:
             messages.error(request, "Please fix the errors below.")
+
            
             print(form.errors)
             messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
 
-    
     if not allow_doctor:
         form.fields['role'].choices = [(User.Role.PATIENT, "Patient")]
-    elif not allow_patient:
+
+    if not allow_patient:
         form.fields['role'].choices = [(User.Role.DOCTOR, "Doctor")]
 
     return render(request, 'accounts/register.html', {
@@ -258,7 +265,7 @@ def doctor_reservation(request, doctor_id):
 
 def doctors_list(request):
     doctors = Doctor.objects.filter(user__active=True).select_related('user', 'specialty')
-    # doctors = Doctor.objects.filter(user__active=True).exclude(id__isnull=True).select_related('user', 'specialty')
+    
 
     specialty_filter = request.GET.get('specialty')
     if specialty_filter:
@@ -341,3 +348,40 @@ def doctor_reservation(request, doctor_id):
         'doctor': doctor,
     })
 
+@login_required
+def edit_patient_profile(request):
+    if request.method == 'POST':
+        form = PatientProfileEditForm(request.user, request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('patient_dashboard')
+    else:
+        form = PatientProfileEditForm(instance=request.user)
+    return render(request, 'accounts/edit_profile.html', {'form': form})
+
+
+
+@login_required
+def request_appointment(request):
+    patient = Patient.objects.get(user=request.user)
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+    confirmed_count = Reservations.objects.filter( patient=patient, date__month=current_month,date__year=current_year,status='approved').count()
+
+    if request.method == 'POST':
+        form = PatientReservationForm(request.POST)
+        if form.is_valid():
+            if confirmed_count >= patient.monthly_limit:
+                messages.error(request, "You have reached your monthly appointment limit.")
+            else:
+                reservation = form.save(commit=False)
+                reservation.patient = patient
+                reservation.status = 'pending'
+                reservation.save()
+                messages.success(request, "Your appointment request has been submitted.")
+                return redirect('patient_dashboard')
+    else:
+        form = PatientReservationForm()
+
+    return render(request, 'reservations/request_appointment.html', {'form': form})
