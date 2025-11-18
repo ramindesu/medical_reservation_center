@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm, DoctorReservationForm
+from .forms import UserRegistrationForm, DoctorReservationForm , AdminUserCreationForm , AdminUserEditForm
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Wallet.models import Wallet
@@ -12,6 +12,7 @@ from Medical_Archive.models import Specialty
 from django.db.models import Q
 from .forms import PatientProfileEditForm ,PatientReservationForm
 from datetime import datetime
+from django.urls import reverse_lazy
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -19,7 +20,7 @@ class CustomLoginView(LoginView):
     def get_success_url(self):
         user = self.request.user
         if user.is_superuser or user.is_staff:
-            return '/admin/'
+            return reverse('admin_dashboard')        
         if user.role == User.Role.DOCTOR:
             return reverse('doctor_dashboard')
         elif user.role == User.Role.PATIENT:
@@ -241,7 +242,7 @@ def request_appointment(request):
     if request.method == 'POST':
         form = PatientReservationForm(request.POST)
         if form.is_valid():
-            if confirmed_count >= patient.monthly_limit:
+            if confirmed_count >= patient.monthly_appointment_limit:
                 messages.error(request, "You have reached your monthly appointment limit.")
             else:
                 reservation = form.save(commit=False)
@@ -254,3 +255,158 @@ def request_appointment(request):
         form = PatientReservationForm()
 
     return render(request, 'reservations/request_appointment.html', {'form': form})
+
+
+# ---------------------------
+
+def admin_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("Login required")
+        
+        if request.user.is_superuser:
+            return view_func(request, *args, **kwargs)
+
+        if request.user.role != User.Role.ADMIN:
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden("Access denied - Admin only")
+
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+@login_required
+@admin_required
+def admin_dashboard(request):
+    total_patients = Patient.objects.count()
+    total_doctors = Doctor.objects.count()
+    total_appointments = Reservations.objects.count()
+    
+    from django.utils import timezone
+    today_appointments = Reservations.objects.filter(date=timezone.now().date()).count()
+    
+    recent_users = User.objects.all().order_by('-date_joined')[:5]
+    
+    recent_appointments = Reservations.objects.all().order_by('-created_at')[:5]
+    
+    context = {
+        'total_patients': total_patients,
+        'total_doctors': total_doctors,
+        'total_appointments': total_appointments,
+        'today_appointments': today_appointments,
+        'users': recent_users, 
+        'appointments': recent_appointments, 
+    }
+    return render(request, 'admin/dashboard.html', context)
+
+@login_required
+@admin_required
+def admin_manage_users(request, user_type):
+    if user_type == 'patients':
+        users = Patient.objects.all().select_related('user')
+        template = 'admin/manage_patients.html'
+        title = 'manage patients'
+    elif user_type == 'doctors':
+        users = Doctor.objects.all().select_related('user', 'specialty')
+        template = 'admin/manage_doctors.html'
+        title = 'manage doctors'
+    else:
+        users = User.objects.all()
+        template = 'admin/manage_users.html'
+        title = 'manage all users'
+    
+
+    search_query = request.GET.get('search')
+    if search_query:
+        if user_type == 'patients':
+            users = users.filter(
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(user__email__icontains=search_query) |
+                Q(user__phone__icontains=search_query)
+            )
+        elif user_type == 'doctors':
+            users = users.filter(
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(user__email__icontains=search_query) |
+                Q(medical_code__icontains=search_query) |
+                Q(specialty__title__icontains=search_query)
+            )
+        else:
+            users = users.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(phone__icontains=search_query) |
+                Q(username__icontains=search_query)
+            )
+    
+    context = {
+        'users': users,
+        'user_type': user_type,
+        'title': title,
+        'search_query': search_query or '',
+    }
+    return render(request, template, context)
+
+@login_required
+@admin_required
+def admin_add_user(request):
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f"User {user.username} created successfully!")
+            return redirect('admin_manage_users', user_type='all')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = AdminUserCreationForm()
+    
+    return render(request, 'admin/add_user.html', {'form': form})
+
+@login_required
+@admin_required
+def admin_edit_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        form = AdminUserEditForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"user information  {user.username} updated successfully   .")
+            return redirect('admin_manage_users', user_type='all')
+        else:
+            messages.error(request, "please correct errors")
+    else:
+        form = AdminUserEditForm(instance=user)
+    
+    context = {
+        'form': form,
+        'user': user,
+        'is_patient': hasattr(user, 'patient'),
+        'is_doctor': hasattr(user, 'doctor'),
+    }
+    return render(request, 'admin/edit_user.html', context)
+
+
+@login_required
+@admin_required
+def admin_manage_appointments(request):
+    appointments = Reservations.objects.all().order_by('-created_at')
+    
+    urgent_requests = appointments.filter(status='waiting')
+    
+    from django.utils import timezone
+    from datetime import timedelta
+    tomorrow = timezone.now().date() + timedelta(days=1)
+    expiring_appointments = appointments.filter(date=tomorrow, status='waiting')
+    
+    context = {
+        'appointments': appointments,
+        'urgent_requests': urgent_requests,
+        'expiring_appointments': expiring_appointments,
+    }
+    return render(request, 'admin/manage_appointments.html', context)
+

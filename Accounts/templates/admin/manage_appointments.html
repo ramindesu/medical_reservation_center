@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Appointments{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">Manage Appointments</h1>
+
+    {% if urgent_requests %}
+    <div class="card shadow mb-4 border-left-warning">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-warning">Urgent Requests (Waiting Approval)</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Service</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in urgent_requests %}
+                        <tr>
+                            <td>{{ appointment.patient.user.get_full_name }}</td>
+                            <td>Dr. {{ appointment.doctor.user.get_full_name }}</td>
+                            <td>{{ appointment.date|date:"M d, Y" }}</td>
+                            <td>{{ appointment.service }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-success">Approve</button>
+                                <button class="btn btn-sm btn-danger">Reject</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">All Appointments</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Service</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.patient.user.get_full_name }}</td>
+                            <td>Dr. {{ appointment.doctor.user.get_full_name }}</td>
+                            <td>{{ appointment.date|date:"M d, Y" }}</td>
+                            <td>{{ appointment.service }}</td>
+                            <td>
+                                <span class="badge badge-{{ appointment.status|lower }}">
+                                    {{ appointment.status }}
+                                </span>
+                            </td>
+                            <td>{{ appointment.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-info">View</button>
+                                    <button class="btn btn-sm btn-warning">Edit</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No appointments found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
