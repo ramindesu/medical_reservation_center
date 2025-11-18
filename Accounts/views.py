@@ -10,7 +10,7 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from .forms import PatientProfileEditForm
+from .forms import PatientProfileEditForm ,PatientReservationForm
 from datetime import datetime
 
 class CustomLoginView(LoginView):
