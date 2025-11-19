@@ -6,7 +6,14 @@ from .views import request_appointment
 
 
 urlpatterns = [
+    
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/add/', views.admin_add_user, name='admin_add_user'),
+    path('admin/users/<str:user_type>/', views.admin_manage_users, name='admin_manage_users'),
+    path('admin/users/<int:user_id>/edit/', views.admin_edit_user, name='admin_edit_user'),
+    path('admin/appointments/', views.admin_manage_appointments, name='admin_manage_appointments'),
 
+    
     path('doctors/', views.doctors_list, name='doctors_list'),
     path('detail/<int:doctor_id>/', views.doctor_details, name='detail_page'),
     path('booking/<int:doctor_id>/',
@@ -39,7 +46,7 @@ urlpatterns = [
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
-    path('request/', request_appointment, name='request_appointment'),
+    path('request-appointment/', views.request_appointment, name='request_appointment'),
 
 
     path('change-password/', auth_views.PasswordChangeView.as_view(

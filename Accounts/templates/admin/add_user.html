@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Add New User</h4>
+        </div>
+
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.username.label }}</label>
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.email.label }}</label>
+                        {{ form.email }}
+                        {{ form.email.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {{ form.first_name.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {{ form.last_name.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {{ form.phone.errors }}
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label>{{ form.address.label }}</label>
+                        {{ form.address }}
+                        {{ form.address.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.role.label }}</label>
+                        {{ form.role }}
+                        {{ form.role.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.password1.label }}</label>
+                        {{ form.password1 }}
+                        {{ form.password1.errors }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>{{ form.password2.label }}</label>
+                        {{ form.password2 }}
+                        {{ form.password2.errors }}
+                    </div>
+                </div>
+
+                <div id="doctor_fields" class="border rounded p-3 mt-3" style="display:none;">
+                    <h5 class="text-primary">Doctor Details</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>{{ form.specialty.label }}</label>
+                            {{ form.specialty }}
+                            {{ form.specialty.errors }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label>{{ form.monthly_reservation_capacity.label }}</label>
+                            {{ form.monthly_reservation_capacity }}
+                            {{ form.monthly_reservation_capacity.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="patient_fields" class="border rounded p-3 mt-3" style="display:none;">
+                    <h5 class="text-success">Patient Details</h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label>{{ form.monthly_appointment_limit.label }}</label>
+                            {{ form.monthly_appointment_limit }}
+                            {{ form.monthly_appointment_limit.errors }}
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary mt-3 w-100" type="submit">Create User</button>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function updateRoleFields() {
+        const role = document.getElementById("id_role").value;
+        const doctorFields = document.getElementById("doctor_fields");
+        const patientFields = document.getElementById("patient_fields");
+
+        doctorFields.style.display = (role === "doctor") ? "block" : "none";
+        patientFields.style.display = (role === "patient") ? "block" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateRoleFields();
+        document.getElementById("id_role").addEventListener("change", updateRoleFields);
+    });
+</script>
+
+{% endblock %}
