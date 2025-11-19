@@ -30,9 +30,15 @@
                             <td>Dr. {{ appointment.doctor.user.get_full_name }}</td>
                             <td>{{ appointment.date|date:"M d, Y" }}</td>
                             <td>{{ appointment.service }}</td>
-                            <td>
-                                <button class="btn btn-sm btn-success">Approve</button>
-                                <button class="btn btn-sm btn-danger">Reject</button>
+                            <td class="d-flex gap-1">
+                                <form method="post" action="{% url 'approve_appointment' appointment.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'reject_appointment' appointment.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
@@ -75,11 +81,9 @@
                                 </span>
                             </td>
                             <td>{{ appointment.created_at|date:"M d, Y" }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-info">View</button>
-                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                </div>
+                            <td class="d-flex gap-1">
+                                <a href="{% url 'view_appointment' appointment.id %}" class="btn btn-sm btn-info">View</a>
+                                <a href="{% url 'edit_appointment' appointment.id %}" class="btn btn-sm btn-warning">Edit</a>
                             </td>
                         </tr>
                         {% empty %}

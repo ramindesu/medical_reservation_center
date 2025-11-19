@@ -13,10 +13,11 @@ from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
 from datetime import date
-
-from .forms import PatientProfileEditForm ,PatientReservationForm
+from Reservations.models import Reservations
+from .forms import PatientProfileForm ,PatientReservationForm
 from datetime import datetime
 from django.urls import reverse_lazy
+
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -245,6 +246,32 @@ def doctor_reservation(request, doctor_id):
     })
 
 
+
+# @login_required
+# def request_appointment(request):
+#     patient = Patient.objects.get(user=request.user)
+#     now = datetime.now()
+#     current_month = now.month
+#     current_year = now.year
+#     confirmed_count = Reservations.objects.filter( patient=patient, date__month=current_month,date__year=current_year,status='approved').count()
+
+#     if request.method == 'POST':
+#         form = PatientReservationForm(request.POST)
+#         if form.is_valid():
+#             if confirmed_count >= patient.monthly_appointment_limit:
+#                 messages.error(request, "You have reached your monthly appointment limit.")
+#             else:
+#                 reservation = form.save(commit=False)
+#                 reservation.patient = patient
+#                 reservation.status = 'pending'
+#                 reservation.save()
+#                 messages.success(request, "Your appointment request has been submitted.")
+#                 return redirect('patient_dashboard')
+#     else:
+#         form = PatientReservationForm()
+
+#     return render(request, 'reservations/request_appointment.html', {'form': form})
+
 @login_required
 def edit_patient_profile(request):
     if request.user.role != User.Role.PATIENT:
@@ -425,7 +452,7 @@ def admin_edit_user(request, user_id):
         form = AdminUserEditForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, f"user information  {user.username} updated successfully   .")
+            messages.success(request, f"user information  {user.username} updated successfully.")
             return redirect('admin_manage_users', user_type='all')
         else:
             messages.error(request, "please correct errors")
@@ -459,4 +486,71 @@ def admin_manage_appointments(request):
         'expiring_appointments': expiring_appointments,
     }
     return render(request, 'admin/manage_appointments.html', context)
+
+
+
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+
+@login_required
+def approve_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+
+    if request.method == "POST":
+        appointment.status = Reservations.Status.APPROVED
+        appointment.save()
+        messages.success(request, f"Appointment with {appointment.patient.user.get_full_name} approved.")
+        return redirect('manage_appointments')
+
+    return redirect('manage_appointments')
+
+
+@login_required
+def reject_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+
+    if request.method == "POST":
+        appointment.status = Reservations.Status.REJECTED
+        appointment.save()
+        messages.success(request, f"Appointment with {appointment.patient.user.get_full_name} rejected.")
+        return redirect('manage_appointments')
+
+    return redirect('manage_appointments')
+
+
+
+
+@login_required
+def view_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+    return render(request, 'appointments/view_appointment.html', {
+        'appointment': appointment
+    })
+
+
+
+@login_required
+def edit_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+
+    if request.method == "POST":
+        form = DoctorReservationForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Appointment updated successfully.")
+            return redirect('manage_appointments')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = DoctorReservationForm(instance=appointment)
+
+    return render(request, 'appointments/edit_appointment.html', {
+        'form': form,
+        'appointment': appointment
+    })
+
 
