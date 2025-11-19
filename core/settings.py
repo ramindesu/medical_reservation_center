@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'Accounts.User'
 
 LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'Wallet',
     'Logs',
     'Front'
-    ]
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -74,7 +74,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -96,8 +96,15 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'medical_db'),
+<<<<<<< HEAD
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD',''),
+=======
+        'USER': os.getenv('DB_USER', 'medical_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
+        # 'USER': os.getenv('DB_USER', 'postgres'),
+        # 'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
+>>>>>>> origin/balfroosh
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
@@ -146,4 +153,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/Avatar/'
-MEDIA_ROOT = os.path.join(BASE_DIR,'Avatar')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'Avatar')

@@ -31,8 +31,8 @@ class Doctor(models.Model):
     medical_code = models.CharField(max_length=30, unique=True)
     specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
-    wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to='Avatar/')
+    wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE, blank=True, null=True)
+    avatar = models.ImageField(upload_to='Avatar/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.user.role = User.Role.DOCTOR
@@ -50,7 +50,7 @@ class Doctor(models.Model):
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE)
+    wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE, blank=True, null=True)
     def save(self, *args, **kwargs):
         self.user.role = User.Role.PATIENT
         self.user.save()

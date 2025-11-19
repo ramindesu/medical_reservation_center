@@ -1,13 +1,18 @@
+from itertools import count
+import re
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm
-from .models import User, Doctor
+from .forms import FeedBackForm, UserRegistrationForm, DoctorReservationForm, PatientProfileForm
+from .models import User, Doctor, Patient
 from Reservations.models import Reservations
-
+from Wallet.models import Wallet
+from Medical_Archive.models import Specialty
+from django.db.models import Q
+from datetime import date
 
 
 class CustomLoginView(LoginView):
@@ -23,31 +28,78 @@ class CustomLoginView(LoginView):
 
 
 def register(request):
-    role = 'patient'
+
+    allow_doctor = getattr(settings, 'ALLOW_DOCTOR_REGISTRATION', True)
+    allow_patient = getattr(settings, 'ALLOW_PATIENT_REGISTRATION', True)
+
+    if not allow_doctor and not allow_patient:
+        return render(request, 'accounts/register.html', {
+            'form': None,
+            'allow_doctor': allow_doctor,
+            'allow_patient': allow_patient
+        })
 
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = UserRegistrationForm(request.POST, request.FILES)
+
         if form.is_valid():
             role = form.cleaned_data['role']
-            specialty = form.cleaned_data.get('specialty')
+
+            if role == User.Role.DOCTOR and not allow_doctor:
+                messages.error(
+                    request, "Doctor registration is currently closed.")
+                return redirect('register')
+
+            if role == User.Role.PATIENT and not allow_patient:
+                messages.error(
+                    request, "Patient registration is currently closed.")
+                return redirect('register')
 
             user = form.save(commit=False)
             user.role = role
-            if role == 'doctor':
-                if not specialty:
-                    messages.error(request, "Please enter your specialty.")
-                    return render(request, 'accounts/register.html', {'form': form, 'role': role})
-                user.specialty = specialty
+
+            if 'avatar' in request.FILES:
+                user.avatar = request.FILES['avatar']
+
             user.save()
-            messages.success(request, "Registration successful! You can now log in.")
+
+            wallet = Wallet.objects.create(balance=0)
+
+            if role == User.Role.DOCTOR:
+                specialty = form.cleaned_data['specialty']
+                medical_code = f"DR-{user.id:04d}"
+
+                Doctor.objects.create(
+                    user=user,
+                    specialty=specialty,
+                    wallet=wallet,
+                    medical_code=medical_code,
+                    monthly_reservation_capacity=50,
+                )
+
+            else:
+                Patient.objects.create(user=user, wallet=wallet)
+
+            messages.success(
+                request, "Registration successful! You can now log in.")
             return redirect('login')
+
         else:
-            messages.error(request, "Please correct the errors below.")
+            messages.error(request, "Please fix the errors below.")
     else:
         form = UserRegistrationForm()
 
-    return render(request, 'accounts/register.html', {'form': form, 'role': role})
+    if not allow_doctor:
+        form.fields['role'].choices = [(User.Role.PATIENT, "Patient")]
 
+    if not allow_patient:
+        form.fields['role'].choices = [(User.Role.DOCTOR, "Doctor")]
+
+    return render(request, 'accounts/register.html', {
+        'form': form,
+        'allow_doctor': allow_doctor,
+        'allow_patient': allow_patient,
+    })
 
 
 def home_redirect(request):
@@ -59,18 +111,13 @@ def home_redirect(request):
     return redirect('login')
 
 
-
 @login_required
 def patient_dashboard(request):
-    if request.user.role != 'patient':
+    if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Access denied'})
-    
-    context = {
-        'user': request.user,
-    }
+
+    context = {'user': request.user}
     return render(request, 'accounts/patient_dashboard.html', context)
-
-
 
 
 @login_required
@@ -80,9 +127,8 @@ def doctor_dashboard(request):
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
 
-    
-    reservations = Reservations.objects.filter(doctor=doctor_instance).order_by('date', 'created_at')
-
+    reservations = Reservations.objects.filter(
+        doctor=doctor_instance).order_by('date', 'created_at')
     context = {
         'doctor': doctor_instance,
         'reservations': reservations,
@@ -90,3 +136,161 @@ def doctor_dashboard(request):
     return render(request, 'accounts/doctor_dashboard.html', context)
 
 
+def doctors_list(request):
+    doctors = Doctor.objects.filter(
+        user__active=True).select_related('user', 'specialty')
+
+    specialty_filter = request.GET.get('specialty')
+    if specialty_filter:
+        doctors = doctors.filter(specialty_id=specialty_filter)
+
+    search_query = request.GET.get('search')
+    if search_query:
+        doctors = doctors.filter(
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query) |
+            Q(specialty__title__icontains=search_query)
+        )
+
+    specialties = Specialty.objects.all()
+    return render(request, 'doctors/list.html', {
+        'doctors': doctors,
+        'specialties': specialties
+    })
+
+
+def booking_page(request, doctor_id):
+    if not request.user.is_authenticated or request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Only patients can book appointments'})
+
+    doctor = get_object_or_404(Doctor, pk=doctor_id, user__active=True)
+
+    if request.method == 'POST':
+        date = request.POST.get('date')
+        service = request.POST.get('service')
+
+        Reservations.objects.create(
+            doctor=doctor,
+            patient=request.user.patient,
+            date=date,
+            service=service,
+            status=Reservations.Status.WAITING
+        )
+        messages.success(request, "Appointment booked successfully!")
+        return redirect('patient_dashboard')
+
+    return render(request, 'booking/booking.html', {'doctor': doctor, 'doctor_id': doctor_id})
+
+
+def doctor_details(request, doctor_id):
+    doctor = get_object_or_404(Doctor, pk=doctor_id, user__active=True)
+    can_book = request.user.is_authenticated and request.user.role == 'patient'
+    return render(request, 'doctors/detail.html', {'doctor': doctor, 'can_book': can_book})
+
+
+@login_required
+def doctor_reservation(request, doctor_id):
+    doctor = get_object_or_404(Doctor, user__id=doctor_id)
+
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Only patients can book appointments.'})
+    patient = request.user.patient
+    max_reservations_per_month = 5
+    today = date.today()
+    count_reservations = Reservations.objects.filter(
+        patient=patient,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+    if count_reservations >= max_reservations_per_month:
+        messages.error(
+            request,
+            f"You have reached the maximum number of {max_reservations_per_month} reservations for this month."
+        )
+        return redirect('patient_dashboard')
+
+    if request.method == "POST":
+        form = DoctorReservationForm(request.POST)
+        if form.is_valid():
+            reservation = form.save(commit=False)
+            reservation.doctor = doctor
+            reservation.patient = request.user.patient
+            reservation.status = Reservations.Status.WAITING
+            reservation.save()
+            messages.success(
+                request,
+                f"Your appointment with Dr. {doctor.user.get_full_name()} has been booked successfully."
+            )
+            return redirect('home')
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = DoctorReservationForm()
+
+    return render(request, 'booking/booking.html', {
+        'form': form,
+        'doctor': doctor,
+    })
+
+
+@login_required
+def edit_patient_profile(request):
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    user = request.user
+
+    if request.method == 'POST':
+        form = PatientProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('patient_dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PatientProfileForm(instance=user)
+
+    return render(request, 'accounts/edit_patient_profile.html', {'form': form})
+
+
+@login_required
+def patient_request_reservation(request):
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    patient = request.user.patient
+    reservations = Reservations.objects.filter(
+        patient=patient).order_by('-created_at')
+
+    return render(request, 'accounts/patient_reservations.html', {'reservations': reservations})
+
+
+@login_required
+def add_feedback(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Access denied'})
+    if reservation.patient.user != request.user:
+        return render(request, 'error.html', {'message': 'You can only add feedback for your own reservations.'})
+    if reservation.status != Reservations.Status.APPROVED:
+        return render(request, 'error.html', {'message': 'Feedback can only be added for approved reservations.'})
+
+    if request.method == 'POST':
+        form = FeedBackForm(request.POST)
+        if form.is_valid():
+            rating = form.cleaned_data['rating']
+            comment = form.cleaned_data['comment']
+            feedback = form.save(commit=False)
+            feedback.reservation = reservation
+            feedback.doctor = reservation.doctor
+            feedback.patient = reservation.patient
+            feedback.rating = rating
+            feedback.comment = comment
+            feedback.save()
+
+        messages.success(request, "Thank you for your feedback!")
+        return redirect('patient_reservations')
+
+    return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})

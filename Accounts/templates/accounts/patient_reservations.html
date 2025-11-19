@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="mb-4">تاریخچه نوبت‌های من</h2>
+
+    {% if r.status == "approved" %}
+    {% if not r.feedback_set.all %}
+        <a href="{% url 'add_feedback' r.id %}" class="btn btn-sm btn-primary">
+            ثبت نظر
+        </a>
+    {% else %}
+        <span class="badge bg-info">نظر ثبت شده</span>
+    {% endif %}
+{% endif %}
+
+
+    {% if reservations %}
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>دکتر</th>
+                    <th>تخصص</th>
+                    <th>تاریخ</th>
+                    <th>خدمت</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in reservations %}
+                    <tr>
+                        <td>Dr. {{ r.doctor.user.get_full_name }}</td>
+                        <td>{{ r.doctor.specialty.title }}</td>
+                        <td>{{ r.date }}</td>
+                        <td>{{ r.service }}</td>
+                        <td>
+                            {% if r.status == "approved" %}
+                                <span class="badge bg-success">تایید شده</span>
+                            {% elif r.status == "waiting" %}
+                                <span class="badge bg-warning">در انتظار</span>
+                            {% elif r.status == "rejected" %}
+                                <span class="badge bg-danger">رد شده</span>
+                            {% else %}
+                                <span class="badge bg-secondary">کنسل شده</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <div class="alert alert-info">هیچ سابقه نوبتی ثبت نشده است.</div>
+    {% endif %}
+</div>
+
+{% endblock %}
