@@ -6,22 +6,36 @@ from .views import request_appointment
 
 
 urlpatterns = [
-    
+
     path('doctors/', views.doctors_list, name='doctors_list'),
     path('detail/<int:doctor_id>/', views.doctor_details, name='detail_page'),
-    path('booking/<int:doctor_id>/', views.doctor_reservation, name='doctor_reservation'),
-    
-    
+    path('booking/<int:doctor_id>/',
+         views.doctor_reservation, name='doctor_reservation'),
+
+
+    path('patient/edit-profile/', views.edit_patient_profile,
+         name='edit_patient_profile'),
+    path('patient/reservations/', views.patient_request_reservation,
+         name='patient_reservations'),
+    path(
+        'feedback/add/<int:reservation_id>/',
+        views.add_feedback,
+        name='add_feedback'
+    ),
+
+
+
+
     path('', views.home_redirect, name='home_redirect'),
 
-   
+
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
 
- 
+
     path('register/', views.register, name='register'),
 
-   
+
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),

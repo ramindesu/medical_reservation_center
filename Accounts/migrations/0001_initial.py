@@ -52,17 +52,32 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Admin',
             fields=[
+<<<<<<< HEAD
+                ('user_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+=======
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+>>>>>>> develop
             ],
             options={
                 'verbose_name': 'Admin',
                 'verbose_name_plural': 'Admins',
             },
+<<<<<<< HEAD
+            bases=('Accounts.user',),
+            managers=[
+                ('objects', django.contrib.auth.models.UserManager()),
+            ],
+=======
+>>>>>>> develop
         ),
         migrations.CreateModel(
             name='Doctor',
             fields=[
+<<<<<<< HEAD
+                ('user_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+=======
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+>>>>>>> develop
                 ('medical_code', models.CharField(max_length=30, unique=True)),
                 ('monthly_reservation_capacity', models.PositiveIntegerField(default=50)),
                 ('avatar', models.ImageField(blank=True, null=True, upload_to='Avatar/')),
@@ -72,16 +87,35 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'Doctors',
                 'ordering': ['specialty'],
             },
+<<<<<<< HEAD
+            bases=('Accounts.user',),
+            managers=[
+                ('objects', django.contrib.auth.models.UserManager()),
+            ],
+=======
+>>>>>>> develop
         ),
         migrations.CreateModel(
             name='Patient',
             fields=[
+<<<<<<< HEAD
+                ('user_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
+=======
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to=settings.AUTH_USER_MODEL)),
                 ('monthly_limit', models.IntegerField(default=5)),
             ],
             options={
                 'verbose_name': 'Patient',
                 'verbose_name_plural': 'Patients',
+<<<<<<< HEAD
+                'ordering': ['first_name'],
             },
+            bases=('Accounts.user',),
+            managers=[
+                ('objects', django.contrib.auth.models.UserManager()),
+            ],
+=======
+            },
+>>>>>>> develop
         ),
     ]

@@ -1,0 +1,13 @@
+<h2>Your Patients</h2>
+
+<ul class="list-group">
+  {% for p in patients %}
+    <li class="list-group-item d-flex justify-content-between">
+      {{ p.user.get_full_name }} — {{ p.user.email }}
+      <a class="btn btn-sm btn-primary"
+         href="{% url 'patient_medical_history' p.id %}">
+         View History
+      </a>
+    </li>
+  {% endfor %}
+</ul>
