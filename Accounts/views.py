@@ -304,20 +304,8 @@ def add_feedback(request, reservation_id):
 
         messages.success(request, "Thank you for your feedback!")
         return redirect('patient_reservations')
-            if confirmed_count >= patient.monthly_appointment_limit:
-                messages.error(request, "You have reached your monthly appointment limit.")
-            else:
-                reservation = form.save(commit=False)
-                reservation.patient = patient
-                reservation.status = 'pending'
-                reservation.save()
-                messages.success(request, "Your appointment request has been submitted.")
-                return redirect('patient_dashboard')
-    else:
-        form = PatientReservationForm()
 
-    return render(request, 'reservations/request_appointment.html', {'form': form})
-
+    return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
 
 # ---------------------------
 
