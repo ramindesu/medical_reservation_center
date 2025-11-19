@@ -10,8 +10,8 @@ urlpatterns = [
          views.doctor_reservation, name='doctor_reservation'),
 
 
-
-    path('patient/edit/', views.edit_pateint_profile, name='patient_edit'),
+    path('patient/edit-profile/', views.edit_patient_profile,
+         name='edit_patient_profile'),
     path('patient/reservations/', views.patient_request_reservation,
          name='patient_reservations'),
     path(
