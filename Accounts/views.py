@@ -234,15 +234,14 @@ def doctor_reservation(request, doctor_id):
 
 
 @login_required
-def edit_pateint_profile(request):
+def edit_patient_profile(request):
     if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Access denied'})
 
-    patient = request.user.patient
+    user = request.user
 
     if request.method == 'POST':
-        form = PatientProfileForm(
-            request.POST, request.FILES, instance=patient)
+        form = PatientProfileForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated successfully.")
@@ -250,23 +249,9 @@ def edit_pateint_profile(request):
         else:
             messages.error(request, "Please correct the errors below.")
     else:
-        form = PatientProfileForm(instance=patient)
+        form = PatientProfileForm(instance=user)
 
     return render(request, 'accounts/edit_patient_profile.html', {'form': form})
-
-
-@login_required
-def add_patient_specialty(request):
-    specialties = Specialty.objects.all()
-    if request.method == 'POST':
-        specialty_id = request.POST.get('specialty')
-        specialty = get_object_or_404(Specialty, id=specialty_id)
-        patient = request.user.patient
-        patient.specialty = specialty
-        patient.save()
-        messages.success(request, "Specialty added successfully.")
-        return redirect('patient_dashboard')
-    return render(request, 'accounts/add_patient_specialty.html', {'specialties': specialties})
 
 
 @login_required
