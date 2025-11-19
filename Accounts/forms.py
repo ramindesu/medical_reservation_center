@@ -178,7 +178,7 @@ class AdminUserCreationForm(forms.ModelForm):
 class AdminUserEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'address', 'active']
+        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'address', 'is_active']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -186,10 +186,10 @@ class AdminUserEditForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'active': 'active',
+            'is_active': 'Active',
         }
 
 class PatientEditForm(forms.ModelForm):

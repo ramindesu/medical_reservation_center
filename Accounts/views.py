@@ -16,6 +16,12 @@ from django.urls import reverse_lazy
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
+    
+    def form_valid(self, form):
+        if not form.get_user().is_active:
+            form.add_error(None, "Your account is deactivated. Please contact admin.")
+            return self.form_invalid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         user = self.request.user

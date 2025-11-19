@@ -8,8 +8,8 @@ from .views import request_appointment
 urlpatterns = [
     
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/users/<str:user_type>/', views.admin_manage_users, name='admin_manage_users'),
     path('admin/users/add/', views.admin_add_user, name='admin_add_user'),
+    path('admin/users/<str:user_type>/', views.admin_manage_users, name='admin_manage_users'),
     path('admin/users/<int:user_id>/edit/', views.admin_edit_user, name='admin_edit_user'),
     path('admin/appointments/', views.admin_manage_appointments, name='admin_manage_appointments'),
 
