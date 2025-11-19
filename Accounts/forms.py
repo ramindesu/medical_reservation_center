@@ -241,3 +241,17 @@ class DoctorEditForm(forms.ModelForm):
             'monthly_reservation_capacity': 'reservvation capacity',
             'medical_code': 'medical code',
         }
+
+class FeedBackForm(forms.ModelForm):
+    class Meta:
+        model = FeedBack
+        fields = ['rating', 'comment']
+
+        widgets = {
+            'rating': forms.NumberInput(attrs={'class': 'form-control glass-input', 'min': '0', 'max': '10'}),
+            'comment': forms.Textarea(attrs={'class': 'form-control glass-input', 'placeholder': 'Your feedback...'}),
+        }
+        labels = {
+            'rating': 'Rating (0-10)',
+            'comment': 'Comment',
+        }

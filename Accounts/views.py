@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm, DoctorReservationForm , AdminUserCreationForm , AdminUserEditForm
+from .forms import UserRegistrationForm, DoctorReservationForm , AdminUserCreationForm , AdminUserEditForm ,FeedBackForm
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Wallet.models import Wallet
