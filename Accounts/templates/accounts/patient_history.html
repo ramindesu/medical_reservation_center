@@ -1,0 +1,13 @@
+<h3>Medical History — {{ patient.user.get_full_name }}</h3>
+
+<ul class="list-group mt-3">
+  {% for appt in appointments %}
+    <li class="list-group-item">
+      <strong>Date:</strong> {{ appt.date }}
+      — <strong>Service:</strong> {{ appt.service }}
+      {% if appt.description %}
+        <p>{{ appt.description }}</p>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

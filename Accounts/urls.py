@@ -1,32 +1,57 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import request_appointment
+# from .views import request_appointment
 
 
 
 urlpatterns = [
     
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin/users/add/', views.admin_add_user, name='admin_add_user'),
+    path('admin/users/<str:user_type>/', views.admin_manage_users, name='admin_manage_users'),
+    path('admin/users/<int:user_id>/edit/', views.admin_edit_user, name='admin_edit_user'),
+    path('admin/appointments/', views.admin_manage_appointments, name='admin_manage_appointments'),
+
+    
     path('doctors/', views.doctors_list, name='doctors_list'),
     path('detail/<int:doctor_id>/', views.doctor_details, name='detail_page'),
-    path('booking/<int:doctor_id>/', views.doctor_reservation, name='doctor_reservation'),
-    
-    
+    path('booking/<int:doctor_id>/',
+         views.doctor_reservation, name='doctor_reservation'),
+
+
+    path('patient/edit-profile/', views.edit_patient_profile,
+         name='edit_patient_profile'),
+    path('patient/reservations/', views.patient_request_reservation,
+         name='patient_reservations'),
+    path(
+        'feedback/add/<int:reservation_id>/',
+        views.add_feedback,
+        name='add_feedback'
+    ),
+
+
+
+
     path('', views.home_redirect, name='home_redirect'),
 
-   
+
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
 
- 
+
     path('register/', views.register, name='register'),
 
-   
+
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
-    path('request/', request_appointment, name='request_appointment'),
-
+    # path('request-appointment/', views.request_appointment, name='request_appointment'),
+    path('appointments/manage/', views.admin_manage_appointments, name='manage_appointments'),
+    path('appointments/<int:appointment_id>/approve/', views.approve_appointment, name='approve_appointment'),
+    path('appointments/<int:appointment_id>/reject/', views.reject_appointment, name='reject_appointment'),
+    path('appointments/<int:appointment_id>/view/', views.view_appointment, name='view_appointment'),
+    path('appointments/<int:appointment_id>/edit/', views.edit_appointment, name='edit_appointment'),
 
     path('change-password/', auth_views.PasswordChangeView.as_view(
         template_name='accounts/change_password.html',
