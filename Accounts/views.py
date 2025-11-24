@@ -139,11 +139,19 @@ def doctor_dashboard(request):
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
 
-    reservations = Reservations.objects.filter(
-        doctor=doctor_instance).order_by('date', 'created_at')
+    approved_reservations = Reservations.objects.filter(
+        doctor=doctor_instance , status=Reservations.Status.APPROVED).order_by('date', 'created_at')
+    
+    waiting_reservations = Reservations.objects.filter(
+        doctor=doctor_instance, 
+        status=Reservations.Status.WAITING
+    )
     context = {
         'doctor': doctor_instance,
-        'reservations': reservations,
+        'approved_reservations': approved_reservations,
+        'total_approved': approved_reservations.count(),
+        'total_waitnig':  waiting_reservations.count()
+        
     }
     return render(request, 'accounts/doctor_dashboard.html', context)
 

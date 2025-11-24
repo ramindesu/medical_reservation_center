@@ -57,6 +57,7 @@ class DoctorReservationForm(forms.ModelForm):
 
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+
         }
         labels = {
             'date': 'Date',

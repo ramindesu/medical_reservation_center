@@ -1,13 +1,14 @@
 from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.utils import timezone
+import datetime
 
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateField()
-    time = models.CharField(default="09:00")
+    time = models.TimeField(default=datetime.time(9,0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service = models.CharField(max_length=100)
