@@ -743,11 +743,19 @@ def doctor_block_request(request, reservation_id):
 
 
 # -----------RAMIN------------
+
+
 def patinet_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
-    doctor = request.user.doctor
+    
+    doctor = request.user.doctor  
     now = timezone.now()
-    appoitments = Reservations.objects.filter(doctor = doctor , status = Reservations.Status.APPROVED , date__lt= now )
+    
+    appointments = Reservations.objects.filter(
+        doctor=doctor,
+        status=Reservations.Status.APPROVED,
+        date__lt=now
+    )
 
-    return render(request, 'doctors/patient-list.html' , {'appoitments':appoitments})
+    return render(request, 'doctors/patient-list.html', {'appointments': appointments})
