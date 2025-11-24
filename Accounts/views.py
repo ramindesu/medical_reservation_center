@@ -540,9 +540,11 @@ def admin_edit_user(request, user_id):
 def admin_manage_appointments(request):
     appointments = Reservations.objects.all().order_by('-created_at')
     blocked_patients = set(Blacklist.objects.filter(active=True).values_list('patient_id', flat=True))
-
     
-    urgent_requests = appointments.filter(status='waiting').exclude(patient_id__in=blocked_patients)
+    from django.utils import timezone
+    from datetime import timedelta
+    two_days_later = timezone.now().date() + timedelta(days=2)    
+    urgent_requests = appointments.filter(date=two_days_later ,status='waiting').exclude(patient_id__in=blocked_patients)
 
   
     from django.utils import timezone
