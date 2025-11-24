@@ -159,11 +159,11 @@ class DoctorProfileForm(forms.ModelForm):
 class PatientReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['doctor', 'date', 'service']
+        fields = ['date', 'service']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
-            'doctor': forms.Select(attrs={'class': 'form-select'}),
+           
         }
 # ------------------------
 class AdminUserCreationForm(forms.ModelForm):
