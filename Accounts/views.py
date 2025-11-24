@@ -478,11 +478,11 @@ def admin_edit_user(request, user_id):
 @admin_required
 def admin_manage_appointments(request):
     appointments = Reservations.objects.all().order_by('-created_at')
-
-    urgent_requests = appointments.filter(status='waiting')
-
     from django.utils import timezone
-    from datetime import timedelta
+    from datetime import timedelta 
+    two_days_later = timezone.now().date() + timedelta(days=2)
+    urgent_requests = appointments.filter(status='waiting' , date=two_days_later)
+
     tomorrow = timezone.now().date() + timedelta(days=1)
     expiring_appointments = appointments.filter(
         date=tomorrow, status='waiting')
