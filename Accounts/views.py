@@ -134,26 +134,7 @@ def patient_dashboard(request):
 
 @login_required
 def doctor_dashboard(request):
-    try:
-        doctor_instance = request.user.doctor
-    except Doctor.DoesNotExist:
-        return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
-
-    approved_reservations = Reservations.objects.filter(
-        doctor=doctor_instance , status=Reservations.Status.APPROVED).order_by('date', 'created_at')
-    
-    waiting_reservations = Reservations.objects.filter(
-        doctor=doctor_instance, 
-        status=Reservations.Status.WAITING
-    )
-    context = {
-        'doctor': doctor_instance,
-        'approved_reservations': approved_reservations,
-        'total_approved': approved_reservations.count(),
-        'total_waitnig':  waiting_reservations.count()
-        
-    }
-    return render(request, 'accounts/doctor_dashboard.html', context)
+    pass
 
 
 def doctors_list(request):
