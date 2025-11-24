@@ -116,9 +116,9 @@
             <p><i class="bi bi-chat-left-quote"></i> Notes: {{ appt.notes|default:"—" }}</p>
           </div>
 
-          <a href="{% url 'appointment_detail' appt.id %}" class="action-btn">
-            <i class="bi bi-box-arrow-up-right"></i> View Details
-          </a>
+          {% comment %} <a href="{% url 'appointment_detail' appt.id %}" class="action-btn"> {% endcomment %}
+            {% comment %} <i class="bi bi-box-arrow-up-right"></i> View Details {% endcomment %}
+          {% comment %} </a> {% endcomment %}
 
         </div>
       {% endfor %}
@@ -133,7 +133,11 @@
         <i class="bi bi-arrow-left"></i> Back to Dashboard
       </button>
     </a>
-
+    
+      <button class="back-btn">
+        <i class="bi "></i> Feedback
+      </button>
+    
   </div>
 </body>
 </html>
