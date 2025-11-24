@@ -297,8 +297,7 @@ def patient_request_reservation(request):
         return render(request, 'error.html', {'message': 'Access denied'})
 
     patient = request.user.patient
-    reservations = Reservations.objects.filter(
-        patient=patient).order_by('-created_at')
+    reservations = Reservations.objects.all().order_by('-created_at')
 
     return render(request, 'accounts/patient_reservations.html', {'reservations': reservations})
 
