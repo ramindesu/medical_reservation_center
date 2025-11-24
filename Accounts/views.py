@@ -13,13 +13,14 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from datetime import date
+from datetime import date , datetime
 from Reservations.models import Reservations
 from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
 from datetime import datetime
 from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
+
 
 
 class CustomLoginView(LoginView):
@@ -606,3 +607,9 @@ def edit_appointment(request, appointment_id):
         'form': form,
         'appointment': appointment
     })
+
+
+# -----------RAMIN------------
+def patinet_list(request):
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
