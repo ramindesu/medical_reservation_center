@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import patinet_list
 # from .views import request_appointment
 
 
@@ -87,5 +88,6 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
+    path('doctor/dashboard/patients', patinet_list, name='doctor_patient_list'),
 
 ]

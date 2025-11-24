@@ -613,8 +613,8 @@ def edit_appointment(request, appointment_id):
 def patinet_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
-    doctor = request.user
+    doctor = request.user.doctor
     now = timezone.now()
     appoitments = Reservations.objects.filter(doctor = doctor , status = Reservations.Status.APPROVED , date__lt= now )
 
-    return render(request, 'patient-list.html' , {'appoitments':appoitments})
+    return render(request, 'doctors/patient-list.html' , {'appoitments':appoitments})
