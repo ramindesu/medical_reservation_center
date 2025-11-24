@@ -15,9 +15,11 @@ from Medical_Archive.models import Specialty
 from django.db.models import Q
 from datetime import date
 from Reservations.models import Reservations
-from .forms import PatientProfileForm, PatientReservationForm
+from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
 from datetime import datetime
 from django.urls import reverse_lazy
+from Reservations.models import FeedBack
+from django.db.models import Avg, Count
 
 
 class CustomLoginView(LoginView):
@@ -245,6 +247,34 @@ def doctor_reservation(request, doctor_id):
     })
 
 
+@login_required
+def edit_doctor_profile(request):
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    user = request.user
+
+    if request.method == 'POST':
+        form = DoctorProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            user.first_name = form.cleaned_data.get(
+                'first_name', user.first_name)
+            user.last_name = form.cleaned_data.get('last_name', user.last_name)
+            user.email = form.cleaned_data.get('email', user.email)
+            user.phone = form.cleaned_data.get('phone', user.phone)
+            user.address = form.cleaned_data.get('address', user.address)
+            user.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('doctor_dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = DoctorProfileForm(instance=user)
+
+    return render(request, 'accounts/edit_doctor_profile.html', {'form': form})
+
+
 # @login_required
 # def request_appointment(request):
 #     patient = Patient.objects.get(user=request.user)
@@ -292,15 +322,41 @@ def edit_patient_profile(request):
 
 
 @login_required
-def patient_request_reservation(request):
+def full_appointment_history(request):
+
     if request.user.role != User.Role.PATIENT:
         return render(request, 'error.html', {'message': 'Access denied'})
 
-    patient = request.user.patient
-    reservations = Reservations.objects.filter(
-        patient=patient).order_by('-created_at')
+    reservations = Reservations.objects.select_related(
+        "doctor__user",
+        "patient__user"
+    ).prefetch_related("feedback_set")
 
-    return render(request, 'accounts/patient_reservations.html', {'reservations': reservations})
+    doctors_rating = (
+        FeedBack.objects
+        .values(
+            "doctor_id",
+            "doctor__user__first_name",
+            "doctor__user__last_name",
+            "doctor__specialty__title"
+        )
+        .annotate(
+            avg_rating=Avg("rating"),
+            total_feedback=Count("id")
+        )
+    )
+
+    top_doctors = [d for d in doctors_rating if d["avg_rating"] >= 5]
+    low_doctors = [d for d in doctors_rating if d["avg_rating"] < 5]
+
+    top_doctors = sorted(top_doctors, key=lambda x: -x["avg_rating"])
+    low_doctors = sorted(low_doctors, key=lambda x: x["avg_rating"])
+
+    return render(request, "accounts/full_appointment_history.html", {
+        "reservations": reservations,
+        "top_doctors": top_doctors,
+        "low_doctors": low_doctors,
+    })
 
 
 @login_required
