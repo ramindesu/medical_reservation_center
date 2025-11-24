@@ -32,8 +32,8 @@ urlpatterns = [
         name='add_feedback'
     ),
 
-
-
+ 
+    path( 'doctor/feedback/<int:reservation_id>/',views.doctor_add_feedback,name='doctor_add_feedback'),
 
     path('', views.home_redirect, name='home_redirect'),
 
