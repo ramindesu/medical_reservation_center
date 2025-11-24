@@ -13,13 +13,13 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from datetime import date , datetime
+from datetime import date 
 from Reservations.models import Reservations
 from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
-from datetime import datetime
 from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
+from django.utils import timezone
 
 
 
@@ -613,3 +613,8 @@ def edit_appointment(request, appointment_id):
 def patinet_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
+    doctor = request.user
+    now = timezone.now()
+    appoitments = Reservations.objects.filter(doctor = doctor , status = Reservations.Status.APPROVED , date__lt= now )
+
+    return render(request, 'patient-list.html' , {'appoitments':appoitments})
