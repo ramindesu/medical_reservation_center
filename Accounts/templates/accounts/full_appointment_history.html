@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4 text-center fw-bold">
+        Full Appointment & Feedback History
+    </h2>
+
+
+
+    <h4 class="mt-5 fw-bold text-success">
+        ⭐ Top Rated Doctors
+    </h4>
+
+    {% if top_doctors %}
+        <div class="row mt-3">
+            {% for d in top_doctors %}
+            <div class="col-md-6">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+
+                        <h5 class="card-title">
+                            Dr. {{ d.doctor__user__first_name }} {{ d.doctor__user__last_name }}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Specialty:</strong> {{ d.doctor__specialty__title }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Average Rating:</strong>
+                            ⭐ {{ d.avg_rating|floatformat:1 }} / 10
+                        </p>
+
+                        <p class="text-muted">
+                            ({{ d.total_feedback }} feedback{{ d.total_feedback|pluralize }})
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No feedback available yet.</p>
+    {% endif %}
+
+
+
+    <h4 class="mt-5 fw-bold text-danger">
+        ⚠️ Low Rated Doctors
+    </h4>
+
+    {% if low_doctors %}
+        <div class="row mt-3">
+            {% for d in low_doctors %}
+            <div class="col-md-6">
+                <div class="card shadow-sm mb-3 border-danger">
+                    <div class="card-body">
+
+                        <h5 class="card-title">
+                            Dr. {{ d.doctor__user__first_name }} {{ d.doctor__user__last_name }}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Specialty:</strong> {{ d.doctor__specialty__title }}
+                        </p>
+
+                        <p class="mb-1 text-danger">
+                            <strong>Average Rating:</strong>
+                            ⭐ {{ d.avg_rating|floatformat:1 }} / 10
+                        </p>
+
+                        <p class="text-muted">
+                            ({{ d.total_feedback }} feedback{{ d.total_feedback|pluralize }})
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
+
+    <h4 class="mt-5 fw-bold">All Appointment Records</h4>
+
+    {% if reservations %}
+        <table class="table table-hover table-bordered text-center shadow-sm rounded mt-3">
+            <thead class="table-primary">
+                <tr>
+                    <th>Doctor</th>
+                    <th>Patient</th>
+                    <th>Specialty</th>
+                    <th>Date</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Feedback</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for r in reservations %}
+                <tr>
+                    <td>Dr. {{ r.doctor.user.get_full_name }}</td>
+                    <td>{{ r.patient.user.get_full_name }}</td>
+                    <td>{{ r.doctor.specialty.title }}</td>
+                    <td>{{ r.date }}</td>
+                    <td>{{ r.service }}</td>
+
+                    <td>
+                        {% if r.status == "approved" %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif r.status == "waiting" %}
+                            <span class="badge bg-warning text-dark">Waiting</span>
+                        {% elif r.status == "rejected" %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Canceled</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="text-align:left; width:260px;">
+                        {% with fb=r.feedback_set.first %}
+                            {% if fb %}
+                                <div class="p-2 rounded"
+                                     style="background: rgba(0,123,255,0.15);
+                                            border-left: 4px solid #0d6efd;"
+                                >
+                                    ⭐ <strong>{{ fb.rating }}/10</strong><br>
+                                    <small><strong>By:</strong> {{ fb.patient.user.get_full_name }}</small><br>
+
+                                    {% if fb.comment %}
+                                        <small><em>{{ fb.comment }}</em></small>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted">No feedback</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <div class="alert alert-info text-center">
+            No appointment records found.
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
