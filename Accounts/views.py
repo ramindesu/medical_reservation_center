@@ -13,13 +13,16 @@ from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from datetime import date
+from datetime import date 
 from Reservations.models import Reservations
+from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
 from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm, BlacklistForm, BlockReservationForm, ReservationBlock
 from datetime import datetime
 from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
+from django.utils import timezone
+
 from Configs.models import Blacklist
 
 
@@ -737,3 +740,14 @@ def doctor_block_request(request, reservation_id):
     return render(request, 'accounts/block_request.html', {'form': form})
 
 
+
+
+# -----------RAMIN------------
+def patinet_list(request):
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+    doctor = request.user.doctor
+    now = timezone.now()
+    appoitments = Reservations.objects.filter(doctor = doctor , status = Reservations.Status.APPROVED , date__lt= now )
+
+    return render(request, 'doctors/patient-list.html' , {'appoitments':appoitments})
