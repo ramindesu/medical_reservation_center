@@ -227,9 +227,10 @@ def doctor_reservation(request, doctor_id):
             f"You have reached the maximum number of {max_reservations_per_month} reservations for this month."
         )
         return redirect('patient_dashboard')
-
+    
+    
     if request.method == "POST":
-        form = DoctorReservationForm(request.POST)
+        form = PatientReservationForm(request.POST)
         if form.is_valid():
             reservation = form.save(commit=False)
             reservation.doctor = doctor
@@ -244,7 +245,8 @@ def doctor_reservation(request, doctor_id):
         else:
             messages.error(request, "Please correct the errors in the form.")
     else:
-        form = DoctorReservationForm()
+        form = PatientReservationForm()
+        
 
     return render(request, 'booking/booking.html', {
         'form': form,
