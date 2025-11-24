@@ -24,8 +24,10 @@ urlpatterns = [
 
     path('patient/edit-profile/', views.edit_patient_profile,
          name='edit_patient_profile'),
-    path('patient/reservations/', views.patient_request_reservation,
-         name='patient_reservations'),
+    path('doctor/edit-profile/', views.edit_doctor_profile,
+         name='edit_doctor_profile'),
+    path('patient/reservations/', views.full_appointment_history,
+         name='full_appointment_history'),
     path(
         'feedback/add/<int:reservation_id>/',
         views.add_feedback,
@@ -47,6 +49,7 @@ urlpatterns = [
 
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    #     path('edit-profile/', views.edit_doctor_profile, name='edit_doctor_profile'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
     # path('request-appointment/', views.request_appointment, name='request_appointment'),
     path('appointments/manage/', views.admin_manage_appointments,
