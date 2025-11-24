@@ -608,7 +608,10 @@ def edit_appointment(request, appointment_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Appointment updated successfully.")
-            return redirect('manage_appointments')
+            if hasattr(request.user, 'doctor'):
+                return redirect('doctor_appointments')
+            else:
+                return redirect('manage_appointments')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
