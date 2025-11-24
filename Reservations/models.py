@@ -1,6 +1,7 @@
 from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Avg, Count
 
 
 class Reservations(models.Model):
@@ -17,6 +18,7 @@ class Reservations(models.Model):
         APPROVED = 'approved', 'Approved'
         REJECTED = 'rejected', 'Rejected'
         CANCELED = 'canceled', 'Canceled'
+        BLOCKED = 'blocked', 'Blocked'
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)
@@ -29,6 +31,20 @@ class Reservations(models.Model):
         verbose_name_plural = 'Reservations'
 
 
+class FeedBackManager(models.Manager):
+    def doctor_rating_average(self):
+        return self.values("doctor_id", "doctor__user__first_name", "doctor__user__last_name", "doctor__specialty__title").annotate(
+            rating_average=Avg("rating"),
+            total_feedback_count=Count("id")
+        ).order_by("-rating_average")
+
+    def top_doctors(self, top_numbers=3):
+        return self.doctor_rating_average()[:top_numbers]
+
+    def low_doctors(self, low_numbers=3):
+        return self.doctor_rating_average().order_by("rating_average")[:low_numbers]
+
+
 class FeedBack(models.Model):
     reservation = models.ForeignKey(Reservations, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
@@ -38,6 +54,7 @@ class FeedBack(models.Model):
     )
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    objects = FeedBackManager()
 
     def __str__(self):
         return f"Feedback ({self.rating}/10) from {self.patient.user.first_name}"

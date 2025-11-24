@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import patinet_list
 # from .views import request_appointment
 
 
@@ -24,8 +25,10 @@ urlpatterns = [
 
     path('patient/edit-profile/', views.edit_patient_profile,
          name='edit_patient_profile'),
-    path('patient/reservations/', views.patient_request_reservation,
-         name='patient_reservations'),
+    path('doctor/edit-profile/', views.edit_doctor_profile,
+         name='edit_doctor_profile'),
+    path('patient/reservations/', views.full_appointment_history,
+         name='full_appointment_history'),
     path(
         'feedback/add/<int:reservation_id>/',
         views.add_feedback,
@@ -47,6 +50,7 @@ urlpatterns = [
 
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    #     path('edit-profile/', views.edit_doctor_profile, name='edit_doctor_profile'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
     # path('request-appointment/', views.request_appointment, name='request_appointment'),
     path('appointments/manage/', views.admin_manage_appointments,
@@ -84,5 +88,19 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
+    path('doctor/dashboard/patients', patinet_list, name='doctor_patient_list'),
 
+
+
+
+     path('doctor/requests/', views.doctor_requests, name='doctor_requests'),
+     path('doctor/requests/<int:reservation_id>/accept/', 
+          views.doctor_accept, name='doctor_accept'),
+     path('doctor/requests/<int:reservation_id>/reject/', 
+          views.doctor_reject, name='doctor_reject'),
+     path('doctor/requests/<int:reservation_id>/blacklist/', 
+          views.doctor_blacklist, name='doctor_blacklist'),
+     path('doctor/requests/<int:reservation_id>/block/', 
+         views.doctor_block_request, 
+         name='doctor_block_request'),
 ]
