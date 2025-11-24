@@ -759,3 +759,22 @@ def patinet_list(request):
     )
 
     return render(request, 'doctors/patient-list.html', {'appointments': appointments})
+
+# ----------------------------
+@login_required
+def doctor_appointments(request):
+    try:
+        doctor_instance = request.user.doctor
+    except Doctor.DoesNotExist:
+        return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
+
+    appointments = Reservations.objects.filter(
+        doctor=doctor_instance, 
+        status=Reservations.Status.APPROVED
+    ).order_by('date', 'time')
+    
+    context = {
+        'doctor': doctor_instance,
+        'appointments': appointments,
+    }
+    return render(request, 'accounts/doctor_appointments.html', context)
