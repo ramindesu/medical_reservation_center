@@ -49,7 +49,6 @@
     </div>
     {% endif %}
 
-
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">All Appointments</h6>
@@ -76,9 +75,17 @@
                             <td>{{ appointment.date|date:"M d, Y" }}</td>
                             <td>{{ appointment.service }}</td>
                             <td>
-                                <span class="badge badge-{{ appointment.status|lower }}">
-                                    {{ appointment.status }}
-                                </span>
+                                {% if appointment.status == 'blocked' %}
+                                    <span class="badge bg-dark text-white">Blocked</span>
+                                {% elif appointment.status == 'waiting' %}
+                                    <span class="badge bg-warning text-dark">Waiting</span>
+                                {% elif appointment.status == 'approved' %}
+                                    <span class="badge bg-success text-white">Approved</span>
+                                {% elif appointment.status == 'rejected' %}
+                                    <span class="badge bg-danger text-white">Rejected</span>
+                                {% else %}
+                                    <span class="badge bg-secondary text-white">{{ appointment.status }}</span>
+                                {% endif %}
                             </td>
                             <td>{{ appointment.created_at|date:"M d, Y" }}</td>
                             <td class="d-flex gap-1">

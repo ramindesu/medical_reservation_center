@@ -4,7 +4,7 @@ from .models import User, Doctor, Patient
 from Medical_Archive.models import Specialty
 from Reservations.models import Reservations, FeedBack
 from Wallet.models import Wallet
-
+from Configs.models import Blacklist, ReservationBlock
 
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -309,4 +309,29 @@ class FeedBackForm(forms.ModelForm):
         labels = {
             'rating': 'Rating (0-10)',
             'comment': 'Comment',
+        }
+# -----------------------------------------------------------
+
+class BlacklistForm(forms.ModelForm):
+    class Meta:
+        model = Blacklist
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking'}),
+        }
+        labels = {
+            'reason': 'Reason',
+        }
+
+
+
+class BlockReservationForm(forms.ModelForm):
+    class Meta:
+        model = ReservationBlock
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking this request'}),
+        }
+        labels = {
+            'reason': 'Reason',
         }

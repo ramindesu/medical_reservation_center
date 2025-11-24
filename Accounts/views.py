@@ -15,11 +15,13 @@ from Medical_Archive.models import Specialty
 from django.db.models import Q
 from datetime import date
 from Reservations.models import Reservations
-from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
+from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm, BlacklistForm, BlockReservationForm, ReservationBlock
 from datetime import datetime
 from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
+from Configs.models import Blacklist
+
 
 
 class CustomLoginView(LoginView):
@@ -142,7 +144,7 @@ def doctor_dashboard(request):
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
 
     reservations = Reservations.objects.filter(
-        doctor=doctor_instance).order_by('date', 'created_at')
+        doctor=doctor_instance , status=Reservations.Status.APPROVED).order_by('date', 'created_at')
     context = {
         'doctor': doctor_instance,
         'reservations': reservations,
@@ -534,14 +536,21 @@ def admin_edit_user(request, user_id):
 @admin_required
 def admin_manage_appointments(request):
     appointments = Reservations.objects.all().order_by('-created_at')
+    blocked_patients = set(Blacklist.objects.filter(active=True).values_list('patient_id', flat=True))
 
-    urgent_requests = appointments.filter(status='waiting')
+    
+    urgent_requests = appointments.filter(status='waiting').exclude(patient_id__in=blocked_patients)
 
+  
     from django.utils import timezone
     from datetime import timedelta
     tomorrow = timezone.now().date() + timedelta(days=1)
     expiring_appointments = appointments.filter(
-        date=tomorrow, status='waiting')
+        date=tomorrow, status='waiting').exclude(patient_id__in=blocked_patients)
+
+    for appointment in appointments:
+        if appointment.status == 'waiting' and appointment.patient_id in blocked_patients:
+            appointment.status = 'blocked'
 
     context = {
         'appointments': appointments,
@@ -606,3 +615,125 @@ def edit_appointment(request, appointment_id):
         'form': form,
         'appointment': appointment
     })
+# --------------------------------------------------------------------------
+
+@login_required
+def doctor_requests(request):
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    doctor = request.user.doctor
+
+    blacklisted_patients = Blacklist.objects.filter(
+        doctor=doctor,
+        active=True
+    ).values_list("patient_id", flat=True)
+
+    reservations = Reservations.objects.filter(
+        doctor=doctor,
+        status=Reservations.Status.WAITING
+    ).exclude(patient_id__in=blacklisted_patients).order_by("date", "time")
+
+    return render(request, "accounts/doctor_requests.html", {
+        "doctor": doctor,
+        "reservations": reservations,
+        "BlacklistForm": BlacklistForm(),
+    })
+
+
+
+@login_required
+def doctor_accept(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, "error.html", {"message": "Access denied"})
+
+    doctor = request.user.doctor
+
+    reservation.status = Reservations.Status.APPROVED
+    reservation.doctor = doctor
+    reservation.save()
+
+ 
+    Reservations.objects.filter(
+        date=reservation.date,
+        time=reservation.time,
+        doctor__specialty=doctor.specialty
+    ).exclude(id=reservation.id).delete()
+
+    messages.success(request, "Appointment approved successfully.")
+    return redirect("doctor_requests")
+
+
+
+
+@login_required
+def doctor_reject(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, "error.html", {"message": "Access denied"})
+
+    reservation.status = Reservations.Status.REJECTED
+    reservation.save()
+
+    messages.success(request, "Appointment rejected.")
+    return redirect("doctor_requests")
+
+
+@login_required
+def doctor_blacklist(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+    
+    if request.user.role != User.Role.DOCTOR:
+        messages.error(request, "Access denied")
+        return redirect("doctor_requests")
+    
+    doctor = request.user.doctor
+    patient = reservation.patient
+
+    if request.method == "POST":
+        form = BlacklistForm(request.POST)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            bl, created = Blacklist.objects.get_or_create(
+                doctor=doctor,
+                patient=patient,
+                defaults={'reason': reason, 'active': True}
+            )
+            if not created:
+                bl.active = True
+                bl.reason = reason
+                bl.save()
+            messages.success(request, f"{patient.user.get_full_name} has been blacklisted.")
+            return redirect("doctor_requests")
+    else:
+        form = BlacklistForm()
+
+    return render(request, "accounts/doctor_blacklist.html", {"form": form, "patient": patient})
+
+
+@login_required
+def doctor_block_request(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+    
+    if request.method == 'POST':
+        form = BlockReservationForm(request.POST)
+        if form.is_valid():
+            blocked_request, created = ReservationBlock.objects.get_or_create(
+                reservation=reservation,
+                defaults={'reason': form.cleaned_data['reason'], 'active': True}
+            )
+            if not created:
+                blocked_request.active = True
+                blocked_request.reason = form.cleaned_data['reason']
+                blocked_request.save()
+            messages.success(request, "Request has been blocked successfully.")
+            return redirect('doctor_requests')
+    else:
+        form = BlockReservationForm()
+    
+    return render(request, 'accounts/block_request.html', {'form': form})
+
+

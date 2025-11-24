@@ -1,5 +1,6 @@
 from django.db import models
 from Accounts.models import  Doctor , Patient
+from Reservations.models import Reservations
 
 class Config(models.Model):
     key = models.CharField(max_length=255 , unique=True)
@@ -30,5 +31,12 @@ class Blacklist(models.Model):
     def __str__(self):
         return f"{self.patient} blocked by {self.doctor} ({'Active' if self.active else 'Inactive'})"
 
+class ReservationBlock(models.Model):
+    reservation = models.OneToOneField(Reservations, on_delete=models.CASCADE)
+    reason = models.TextField()
+    active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"Reservation {self.reservation.id} blocked ({'Active' if self.active else 'Inactive'})"
 
 

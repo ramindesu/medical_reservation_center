@@ -88,4 +88,17 @@ urlpatterns = [
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
 
+
+
+
+     path('doctor/requests/', views.doctor_requests, name='doctor_requests'),
+     path('doctor/requests/<int:reservation_id>/accept/', 
+          views.doctor_accept, name='doctor_accept'),
+     path('doctor/requests/<int:reservation_id>/reject/', 
+          views.doctor_reject, name='doctor_reject'),
+     path('doctor/requests/<int:reservation_id>/blacklist/', 
+          views.doctor_blacklist, name='doctor_blacklist'),
+     path('doctor/requests/<int:reservation_id>/block/', 
+         views.doctor_block_request, 
+         name='doctor_block_request'),
 ]

@@ -18,6 +18,7 @@ class Reservations(models.Model):
         APPROVED = 'approved', 'Approved'
         REJECTED = 'rejected', 'Rejected'
         CANCELED = 'canceled', 'Canceled'
+        BLOCKED = 'blocked', 'Blocked'
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)
