@@ -134,7 +134,7 @@ def patient_dashboard(request):
 
 @login_required
 def doctor_dashboard(request):
-    pass
+   
 
 
 def doctors_list(request):
