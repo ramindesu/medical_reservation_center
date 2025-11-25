@@ -2,7 +2,8 @@ from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
-from datetime import time
+from datetime import time , datetime
+
 
 
 class Reservations(models.Model):
@@ -26,6 +27,12 @@ class Reservations(models.Model):
 
     def __str__(self):
         return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
+    
+    @property
+    def is_in_progress(self):
+        system_date = datetime.now().date()
+        return self.date == system_date
+
 
     class Meta:
         verbose_name = 'Reservation'
