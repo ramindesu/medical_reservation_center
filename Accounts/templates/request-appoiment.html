@@ -8,9 +8,25 @@
 <body style="background: linear-gradient(135deg, #4a90e2, #50d8d7); height:100vh; display:flex; align-items:center; justify-content:center;">
   <div class="card p-4 shadow" style="width: 100%; max-width: 480px; backdrop-filter: blur(10px); background-color: rgba(255,255,255,0.2); border-radius: 20px;">
     <h4 class="mb-4 text-white text-center"><i class="bi bi-calendar-plus"></i> Request Appointment</h4>
+
     {% for message in messages %}
       <div class="alert alert-warning">{{ message }}</div>
     {% endfor %}
+
+    
+    {% if appointment %}
+      <p>Status: 
+        <span class="badge text-dark 
+          {% if appointment.status == 'waiting' %}bg-warning
+          {% elif appointment.status == 'approved' %}bg-success
+          {% elif appointment.status == 'rejected' %}bg-danger
+          {% elif appointment.status == 'blocked' %}bg-dark
+          {% endif %}">
+          {{ appointment.status|capfirst }}
+        </span>
+      </p>
+    {% endif %}
+
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}

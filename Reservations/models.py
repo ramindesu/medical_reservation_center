@@ -2,13 +2,14 @@ from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
+from datetime import time
 
 
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateField()
-    time = models.CharField(default="09:00")
+    time = models.TimeField(default=time(9,0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service = models.CharField(max_length=100)
@@ -18,6 +19,7 @@ class Reservations(models.Model):
         APPROVED = 'approved', 'Approved'
         REJECTED = 'rejected', 'Rejected'
         CANCELED = 'canceled', 'Canceled'
+        BLOCKED = 'blocked', 'Blocked'
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)

@@ -32,13 +32,7 @@
             backdrop-filter: blur(14px);
             box-shadow: 0px 25px 45px rgba(0,0,0,0.2);
             color: white;
-            text-align: center;
             animation: fadeIn 0.6s ease-in-out;
-        }
-
-        h1 {
-            font-weight: 700;
-            margin-bottom: 20px;
         }
 
         .doctor-card {
@@ -46,7 +40,6 @@
             padding: 20px;
             border-radius: 15px;
             margin: 10px 0;
-            text-align: left;
             color: white;
             transition: 0.3s;
         }
@@ -54,16 +47,6 @@
         .doctor-card:hover {
             background: rgba(255, 255, 255, 0.4);
             transform: translateY(-4px);
-        }
-
-        .doctor-card h4 {
-            margin: 0 0 5px 0;
-            font-weight: 600;
-        }
-
-        .doctor-card p {
-            margin: 0;
-            opacity: 0.9;
         }
 
         a.back-btn {
@@ -89,10 +72,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
+
         <h1><i class="bi bi-person-lines-fill"></i> Doctors in {{ specialty.title }}</h1>
         <p class="mb-4">Here are the available doctors for this specialty:</p>
+
         {% if doctors %}
             {% for doctor in doctors %}
                 <div class="doctor-card">
@@ -108,18 +94,23 @@
             <p>No doctors available for this specialty.</p>
         {% endif %}
 
-
         <hr class="my-4" style="border-color: rgba(255,255,255,0.4);">
 
         <h3 class="mb-3"><i class="bi bi-calendar-check"></i> Send Reservation Request</h3>
         <p>You can send a reservation request to ALL doctors of this specialty.</p>
 
-        <form method="POST" class="text-start">
+        {% if form %}
+        <form method="POST">
             {% csrf_token %}
-            
+
             <div class="mb-3">
                 {{ form.date.label_tag }}
                 {{ form.date }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.time.label_tag }}
+                {{ form.time }}
             </div>
 
             <div class="mb-3">
@@ -132,6 +123,14 @@
             </button>
         </form>
 
+        {% else %}
+            <p class="text-warning mt-3">You must log in to make a reservation.</p>
+        {% endif %}
+
         <a href="{% url 'specialties' %}" class="back-btn d-block mt-4">
             <i class="bi bi-arrow-left-circle"></i> Back to Specialties
         </a>
+
+    </div>
+</body>
+</html>

@@ -4,7 +4,7 @@ from .models import User, Doctor, Patient
 from Medical_Archive.models import Specialty
 from Reservations.models import Reservations, FeedBack
 from Wallet.models import Wallet
-
+from Configs.models import Blacklist, ReservationBlock
 
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -52,16 +52,20 @@ class UserRegistrationForm(UserCreationForm):
 class DoctorReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['date', 'service']
+        fields = ['date', 'time', 'service']
 
         widgets = {
 
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+           
         }
         labels = {
             'date': 'Date',
+            'time' : 'Time',
             'service': 'Service',
+            
         }
 
 
@@ -155,11 +159,11 @@ class DoctorProfileForm(forms.ModelForm):
 class PatientReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['doctor', 'date', 'service']
+        fields = ['date', 'service']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
-            'doctor': forms.Select(attrs={'class': 'form-select'}),
+           
         }
 # ------------------------
 class AdminUserCreationForm(forms.ModelForm):
@@ -309,4 +313,29 @@ class FeedBackForm(forms.ModelForm):
         labels = {
             'rating': 'Rating (0-10)',
             'comment': 'Comment',
+        }
+# -----------------------------------------------------------
+
+class BlacklistForm(forms.ModelForm):
+    class Meta:
+        model = Blacklist
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking'}),
+        }
+        labels = {
+            'reason': 'Reason',
+        }
+
+
+
+class BlockReservationForm(forms.ModelForm):
+    class Meta:
+        model = ReservationBlock
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking this request'}),
+        }
+        labels = {
+            'reason': 'Reason',
         }
