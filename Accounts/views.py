@@ -785,3 +785,44 @@ def doctor_appointments(request):
         'appointments': appointments,
     }
     return render(request, 'accounts/doctor_appointments.html', context)
+
+
+
+
+@login_required
+def create_followup_appointment(request, appointment_id):
+    original_appointment = get_object_or_404(Reservations, id=appointment_id)
+    
+    if original_appointment.doctor != request.user.doctor:
+            messages.error(request, "You can only create follow-up for your own appointments.")
+            return redirect('doctor_appointments')
+    
+    if not original_appointment.is_in_progress:
+        messages.error(request, "You can only create follow-up appointments for today's appointments.")
+        return redirect('doctor_appointments')
+    
+    if request.method == "POST":
+        date = request.POST.get('date')
+        time = request.POST.get('time')
+        service = request.POST.get('service', f"Follow-up: {original_appointment.service}")
+        
+        if date and time:
+            Reservations.objects.create(
+                doctor=request.user.doctor,
+                patient=original_appointment.patient,
+                date=date,
+                time=time,
+                service=service,
+                status=Reservations.Status.APPROVED
+            )
+            
+            messages.success(request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
+            return redirect('doctor_appointments')
+        else:
+            messages.error(request, "Please fill in all required fields.")
+
+    context = {
+        'original_appointment': original_appointment,
+        'patient': original_appointment.patient,
+    }
+    return render(request, 'accounts/create_followup_appointment.html', context)
