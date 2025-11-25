@@ -606,3 +606,17 @@ def edit_appointment(request, appointment_id):
         'form': form,
         'appointment': appointment
     })
+
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+    if appointment.patient != request.user.patient:
+        return render(request, 'error.html', {'message': 'Access denied'})
+    if appointment.status != Reservations.Status.WAITING:
+        messages.error(request, "Only waiting appointments can be canceled.")
+        return redirect('patient_reservations')
+    appointment.status = Reservations.Status.CANCELED
+    appointment.save()
+    messages.success(request, "Appointment canceled successfully.")
+    return redirect('patient_dashboard')
