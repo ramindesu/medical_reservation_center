@@ -15,6 +15,7 @@ urlpatterns = [
          views.admin_edit_user, name='admin_edit_user'),
     path('admin/appointments/', views.admin_manage_appointments,
          name='admin_manage_appointments'),
+    path('doctor/appointments/', views.doctor_appointments, name='doctor_appointments'),
 
 
     path('doctors/', views.doctors_list, name='doctors_list'),

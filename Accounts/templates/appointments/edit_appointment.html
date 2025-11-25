@@ -11,17 +11,60 @@
             <h6 class="m-0 font-weight-bold text-primary">Update Appointment</h6>
         </div>
         <div class="card-body">
+            
+ 
+            <div class="card border-left-info shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="bi bi-person-circle me-2"></i>Patient Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Name:</strong> {{ appointment.patient.user.get_full_name }}
+                            </p>
+                            <p class="mb-2">
+                                <strong>Email:</strong> {{ appointment.patient.user.email }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong>Current Date:</strong> {{ appointment.date }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Current Time:</strong> {{ appointment.time }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <form method="post">
                 {% csrf_token %}
 
                 {{ form.non_field_errors }}
 
-                <div class="mb-3">
-                    <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
-                    {{ form.date }}
-                    {% if form.date.errors %}
-                        <div class="text-danger">{{ form.date.errors }}</div>
-                    {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.date.id_for_label }}" class="form-label">Date</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                                <div class="text-danger">{{ form.date.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.time.id_for_label }}" class="form-label">Time</label>
+                            {{ form.time }}
+                            {% if form.time.errors %}
+                                <div class="text-danger">{{ form.time.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -40,8 +83,12 @@
                     {% endif %}
                 </div>
 
-                <button type="submit" class="btn btn-success">Save Changes</button>
-                <a href="{% url 'admin_manage_appointments' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+                <a href="{% url 'doctor_appointments' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
             </form>
         </div>
     </div>

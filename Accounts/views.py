@@ -239,9 +239,10 @@ def doctor_reservation(request, doctor_id):
             f"You have reached the maximum number of {max_reservations_per_month} reservations for this month."
         )
         return redirect('patient_dashboard')
-
+    
+    
     if request.method == "POST":
-        form = DoctorReservationForm(request.POST)
+        form = PatientReservationForm(request.POST)
         if form.is_valid():
             reservation = form.save(commit=False)
             reservation.doctor = doctor
@@ -256,7 +257,8 @@ def doctor_reservation(request, doctor_id):
         else:
             messages.error(request, "Please correct the errors in the form.")
     else:
-        form = DoctorReservationForm()
+        form = PatientReservationForm()
+        
 
     return render(request, 'booking/booking.html', {
         'form': form,
@@ -554,6 +556,20 @@ def admin_edit_user(request, user_id):
 @login_required
 @admin_required
 def admin_manage_appointments(request):
+    appointments = Reservations.objects.all().order_by('-created_at')
+    blocked_patients = set(Blacklist.objects.filter(active=True).values_list('patient_id', flat=True))
+    
+    from django.utils import timezone
+    from datetime import timedelta
+    two_days_later = timezone.now().date() + timedelta(days=2)    
+    urgent_requests = appointments.filter(date=two_days_later ,status='waiting').exclude(patient_id__in=blocked_patients)
+
+  
+    from django.utils import timezone
+    from datetime import timedelta
+    tomorrow = timezone.now().date() + timedelta(days=1)
+    expiring_appointments = appointments.filter(
+        date=tomorrow, status='waiting').exclude(patient_id__in=blocked_patients)
     all_appointments = Reservations.objects.select_related(
         "doctor__user", "patient__user"
     ).order_by('-created_at')
@@ -624,7 +640,10 @@ def edit_appointment(request, appointment_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Appointment updated successfully.")
-            return redirect('manage_appointments')
+            if hasattr(request.user, 'doctor'):
+                return redirect('doctor_appointments')
+            else:
+                return redirect('manage_appointments')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -791,3 +810,22 @@ def patinet_list(request):
     )
 
     return render(request, 'doctors/patient-list.html', {'appointments': appointments})
+
+# ----------------------------
+@login_required
+def doctor_appointments(request):
+    try:
+        doctor_instance = request.user.doctor
+    except Doctor.DoesNotExist:
+        return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
+
+    appointments = Reservations.objects.filter(
+        doctor=doctor_instance, 
+        status=Reservations.Status.APPROVED
+    ).order_by('date', 'time')
+    
+    context = {
+        'doctor': doctor_instance,
+        'appointments': appointments,
+    }
+    return render(request, 'accounts/doctor_appointments.html', context)

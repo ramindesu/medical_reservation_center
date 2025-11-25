@@ -52,16 +52,20 @@ class UserRegistrationForm(UserCreationForm):
 class DoctorReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['date', 'service']
+        fields = ['date', 'time', 'service']
 
         widgets = {
 
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+           
         }
         labels = {
             'date': 'Date',
+            'time' : 'Time',
             'service': 'Service',
+            
         }
 
 
@@ -155,11 +159,11 @@ class DoctorProfileForm(forms.ModelForm):
 class PatientReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['doctor', 'date', 'service']
+        fields = ['date', 'service']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
-            'doctor': forms.Select(attrs={'class': 'form-select'}),
+           
         }
 # ------------------------
 class AdminUserCreationForm(forms.ModelForm):
