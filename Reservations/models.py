@@ -22,6 +22,16 @@ class Reservations(models.Model):
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)
+    
+
+    
+    @property
+    def display_status(self):
+       
+        from Configs.models import Blacklist
+        if Blacklist.objects.filter(doctor=self.doctor, patient=self.patient, active=True).exists():
+            return Reservations.Status.BLOCKED
+        return self.status
 
     def __str__(self):
         return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
