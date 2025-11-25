@@ -140,11 +140,12 @@
     <div class="glass-box">
         <h3><i class="bi bi-people"></i> Patients List</h3>
 
-        <a href="{%url 'doctor_patient_list'%}" class="btn btn-glass">
+        <a href="{% url 'doctor_patient_list' %}" class="btn btn-glass">
             <i class="bi bi-eye"></i> View Patients
         </a>
     </div>
 
+    <!-- Requests -->
     <div class="glass-box">
         <h3><i class="bi bi-inbox"></i> Requests</h3>
         <a href="{% url 'doctor_requests' %}" class="btn btn-glass">
