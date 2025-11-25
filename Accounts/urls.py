@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from .views import patinet_list
+from .views import patient_list
 # from .views import request_appointment
 
 
@@ -36,6 +36,10 @@ urlpatterns = [
     ),
 
 
+     path( 'doctor/feedback/<int:reservation_id>/',views.doctor_add_feedback,name='doctor_add_feedback'),
+
+
+     path( 'doctor/patient_list/',views.patient_list,name='doctor_patient_list'),
 
 
     path('', views.home_redirect, name='home_redirect'),
@@ -88,7 +92,7 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
-    path('doctor/dashboard/patients', patinet_list, name='doctor_patient_list'),
+    path('doctor/dashboard/patients', patient_list, name='doctor_patient_list'),
 
 
 
