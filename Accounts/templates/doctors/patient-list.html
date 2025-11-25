@@ -98,46 +98,41 @@
   <div class="glass-box">
 
     <h2>
-      <i class="bi bi-clock-history"></i>  
+      <i class="bi bi-clock-history"></i>
       Past Appointments
     </h2>
 
-    {% if appointments %}
-      {% for appt in appointments %}
-        <div class="appt-card">
+    {% for appt in appointments %}
+      <div class="appt-card">
 
-          <div class="appt-header">
-            <span><i class="bi bi-person"></i> {{ appt.patient.user.get_full_name }}</span>
-            <span><i class="bi bi-calendar"></i> {{ appt.date }}</span>
-          </div>
-
-          <div class="appt-details">
-            <p><i class="bi bi-activity"></i> Service: {{ appt.service }}</p>
-            <p><i class="bi bi-chat-left-quote"></i> Notes: {{ appt.notes|default:"—" }}</p>
-          </div>
-
-            <a href="#" class="action-btn">
-              <i class="bi bi-box-arrow-up-right"></i> FeedBack
-            </a>
-
+        <div class="appt-header">
+          <span><i class="bi bi-person"></i> {{ appt.patient.user.get_full_name }}</span>
+          <span><i class="bi bi-calendar"></i> {{ appt.date }}</span>
         </div>
-      {% endfor %}
-    {% else %}
+
+        <div class="appt-details">
+          <p><i class="bi bi-activity"></i> Service: {{ appt.service }}</p>
+          <p><i class="bi bi-chat-left-quote"></i> Notes: {{ appt.notes|default:"—" }}</p>
+        </div>
+
+
+        <a href="#" class="action-btn">
+          <i class="bi bi-chat-heart"></i> Feedback
+        </a>
+
+      </div>
+    {% empty %}
       <p class="text-center text-light fs-5 mt-3">
         <i class="bi bi-info-circle"></i> No past appointments.
       </p>
-    {% endif %}
+    {% endfor %}
 
     <a href="{% url 'doctor_dashboard' %}">
       <button class="back-btn">
         <i class="bi bi-arrow-left"></i> Back to Dashboard
       </button>
     </a>
-    
-      <button class="back-btn">
-        <i class="bi "></i> Feedback
-      </button>
-    
+
   </div>
 </body>
 </html>
