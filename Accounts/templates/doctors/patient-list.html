@@ -116,9 +116,10 @@
             <p><i class="bi bi-chat-left-quote"></i> Notes: {{ appt.notes|default:"—" }}</p>
           </div>
 
-            <a href="#" class="action-btn">
-              <i class="bi bi-box-arrow-up-right"></i> FeedBack
-            </a>
+          {# Go to doctor_add_feedback view for this appointment #}
+          <a href="{% url 'doctor_add_feedback' appt.id %}" class="action-btn">
+            <i class="bi bi-box-arrow-up-right"></i> Feedback
+          </a>
 
         </div>
       {% endfor %}
@@ -133,11 +134,7 @@
         <i class="bi bi-arrow-left"></i> Back to Dashboard
       </button>
     </a>
-    
-      <button class="back-btn">
-        <i class="bi "></i> Feedback
-      </button>
-    
+
   </div>
 </body>
 </html>
