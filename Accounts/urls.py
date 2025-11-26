@@ -15,8 +15,10 @@ urlpatterns = [
          views.admin_edit_user, name='admin_edit_user'),
     path('admin/appointments/', views.admin_manage_appointments,
          name='admin_manage_appointments'),
-    path('doctor/appointments/', views.doctor_appointments, name='doctor_appointments'),
-    path('appointments/<int:appointment_id>/create-followup/', views.create_followup_appointment, name='create_followup'),
+    path('doctor/appointments/', views.doctor_appointments,
+         name='doctor_appointments'),
+    path('appointments/<int:appointment_id>/create-followup/',
+         views.create_followup_appointment, name='create_followup'),
 
 
     path('doctors/', views.doctors_list, name='doctors_list'),
@@ -39,10 +41,11 @@ urlpatterns = [
     path("appointment/cancel/<int:appointment_id>/",
          views.cancel_appointment, name="cancel_appointment"),
 
-     path( 'doctor/feedback/<int:reservation_id>/',views.doctor_add_feedback,name='doctor_add_feedback'),
+    path('doctor/feedback/<int:reservation_id>/',
+         views.doctor_add_feedback, name='doctor_add_feedback'),
 
 
-     path( 'doctor/patient_list/',views.patient_list,name='doctor_patient_list'),
+    path('doctor/patient_list/', views.patient_list, name='doctor_patient_list'),
 
 
     path('', views.home_redirect, name='home_redirect'),
@@ -95,19 +98,21 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
-    path('doctor/dashboard/patients', patient_list, name='doctor_patient_list'),
+    path('doctor/dashboard/patients',
+         views.patient_list, name='doctor_patient_list'),
+    path('increase_capacity/', views.increase_capacity, name='increase_capacity'),
 
 
 
 
-     path('doctor/requests/', views.doctor_requests, name='doctor_requests'),
-     path('doctor/requests/<int:reservation_id>/accept/', 
-          views.doctor_accept, name='doctor_accept'),
-     path('doctor/requests/<int:reservation_id>/reject/', 
-          views.doctor_reject, name='doctor_reject'),
-     path('doctor/requests/<int:reservation_id>/blacklist/', 
-          views.doctor_blacklist, name='doctor_blacklist'),
-     path('doctor/requests/<int:reservation_id>/block/', 
-         views.doctor_block_request, 
+    path('doctor/requests/', views.doctor_requests, name='doctor_requests'),
+    path('doctor/requests/<int:reservation_id>/accept/',
+         views.doctor_accept, name='doctor_accept'),
+    path('doctor/requests/<int:reservation_id>/reject/',
+         views.doctor_reject, name='doctor_reject'),
+    path('doctor/requests/<int:reservation_id>/blacklist/',
+         views.doctor_blacklist, name='doctor_blacklist'),
+    path('doctor/requests/<int:reservation_id>/block/',
+         views.doctor_block_request,
          name='doctor_block_request'),
 ]
