@@ -2,33 +2,45 @@ from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
+
+
+
+
+def validate_not_past(value):
+    today = timezone.localdate()
+    if value < today:
+        raise ValidationError("You cannot create a reservation for a past date.")
 
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.CharField(default="09:00")
+    date = models.DateField(validators=[validate_not_past])
+    time = models.CharField( max_length=5, default="9:00")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service = models.CharField(max_length=100)
 
     class Status(models.TextChoices):
-        WAITING = 'waiting', 'Waiting'
-        APPROVED = 'approved', 'Approved'
-        REJECTED = 'rejected', 'Rejected'
-        CANCELED = 'canceled', 'Canceled'
-        BLOCKED = 'blocked', 'Blocked'
+        WAITING = "waiting", "Waiting"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        CANCELED = "canceled", "Canceled"
+        BLOCKED = "blocked", "Blocked"
 
     status = models.CharField(
-        max_length=15, choices=Status.choices, default=Status.WAITING)
-
+        max_length=15,
+        choices=Status.choices,
+        default=Status.WAITING,
+    )
     def __str__(self):
         return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
 
     class Meta:
-        verbose_name = 'Reservation'
-        verbose_name_plural = 'Reservations'
+        verbose_name = "Reservation"
+        verbose_name_plural = "Reservations"
 
 
 class FeedBackManager(models.Manager):
