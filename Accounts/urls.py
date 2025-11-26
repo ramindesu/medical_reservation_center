@@ -19,6 +19,10 @@ urlpatterns = [
          name='doctor_appointments'),
     path('appointments/<int:appointment_id>/create-followup/',
          views.create_followup_appointment, name='create_followup'),
+    
+     path('admin/capacity-requests/', views.admin_manage_capacity_requests, name='admin_manage_capacity_requests'),
+     path('admin/capacity-requests/<int:request_id>/approve/', views.approve_capacity_request, name='approve_capacity_request'),
+     path('admin/capacity-requests/<int:request_id>/reject/', views.reject_capacity_request, name='reject_capacity_request'),     
 
 
     path('doctors/', views.doctors_list, name='doctors_list'),
