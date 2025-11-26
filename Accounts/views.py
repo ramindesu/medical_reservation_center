@@ -25,6 +25,10 @@ from django.utils import timezone
 
 from Configs.models import Blacklist
 
+from django.contrib.auth import logout
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'

@@ -149,3 +149,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/Avatar/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Avatar')
+LOGOUT_REDIRECT_URL = 'home'
