@@ -36,7 +36,8 @@ urlpatterns = [
         views.add_feedback,
         name='add_feedback'
     ),
-
+    path("appointment/cancel/<int:appointment_id>/",
+         views.cancel_appointment, name="cancel_appointment"),
 
 
 
