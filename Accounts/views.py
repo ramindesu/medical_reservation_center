@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
+from .forms import IncreaseCapacityForm, UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
 from .models import User, Doctor, Patient
 from Reservations.models import Reservations
 from Wallet.models import Wallet
@@ -26,9 +26,12 @@ from django.utils import timezone
 from Configs.models import Blacklist
 
 from django.contrib.auth import logout
+
+
 def logout_view(request):
     logout(request)
     return redirect('home')
+
 
 class CustomLoginView(LoginView):
     template_name = 'accounts/login.html'
@@ -148,11 +151,13 @@ def doctor_dashboard(request):
         doctor_instance = request.user.doctor
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
-
+    user = request.user
     reservations = Reservations.objects.filter(
-        doctor=doctor_instance, status=Reservations.Status.APPROVED).order_by('date', 'created_at')
+        doctor=doctor_instance, status=Reservations.Status.APPROVED
+    ).select_related("patient__user").order_by('date', 'created_at')
     context = {
         'doctor': doctor_instance,
+        'user': user,
         'reservations': reservations,
     }
     return render(request, 'accounts/doctor_dashboard.html', context)
@@ -392,7 +397,7 @@ def add_feedback(request, reservation_id):
             feedback.save()
 
         messages.success(request, "Thank you for your feedback!")
-        return redirect('patient_reservations')
+        return redirect('patient_dashboard')
 
     return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
 
@@ -656,20 +661,20 @@ def doctor_requests(request):
 
 @login_required
 def doctor_accept(request, reservation_id):
-    reservation = get_object_or_404(Reservations, id=reservation_id)
-
     if request.user.role != User.Role.DOCTOR:
         return render(request, "error.html", {"message": "Access denied"})
-
+    reservation = get_object_or_404(Reservations, id=reservation_id)
     doctor = request.user.doctor
 
+    doctor.monthly_reservation_capacity -= 1
+    doctor.save()
+
     reservation.status = Reservations.Status.APPROVED
-    reservation.doctor = doctor
     reservation.save()
 
     Reservations.objects.filter(
         date=reservation.date,
-        time=reservation.time,
+        # time=reservation.time,
         doctor__specialty=doctor.specialty
     ).exclude(id=reservation.id).delete()
 
@@ -751,13 +756,12 @@ def doctor_block_request(request, reservation_id):
 # -----------RAMIN------------
 
 @login_required
-def patient_list(request):   
+def patient_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
-    
-    doctor = request.user.doctor  
+
+    doctor = request.user.doctor
     today = timezone.now().date()
-    
 
     doctor = request.user.doctor
     now = timezone.now()
@@ -779,14 +783,15 @@ def doctor_appointments(request):
         doctor_instance = request.user.doctor
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
-
+    user = request.user
     appointments = Reservations.objects.filter(
         doctor=doctor_instance,
         status=Reservations.Status.APPROVED
-    ).order_by('date', 'time')
+    ).select_related('patient__user').order_by('date', 'time')
 
     context = {
         'doctor': doctor_instance,
+        'user': user,
         'appointments': appointments,
     }
     return render(request, 'accounts/doctor_appointments.html', context)
@@ -806,26 +811,26 @@ def cancel_appointment(request, appointment_id):
     return redirect('patient_dashboard')
 
 
-
-
-
 @login_required
 def create_followup_appointment(request, appointment_id):
     original_appointment = get_object_or_404(Reservations, id=appointment_id)
-    
+
     if original_appointment.doctor != request.user.doctor:
-        messages.error(request, "You can only create follow-up for your own appointments.")
+        messages.error(
+            request, "You can only create follow-up for your own appointments.")
         return redirect('doctor_appointments')
-    
+
     if not original_appointment.is_in_progress:
-        messages.error(request, "You can only create follow-up appointments for today's appointments.")
+        messages.error(
+            request, "You can only create follow-up appointments for today's appointments.")
         return redirect('doctor_appointments')
-    
+
     if request.method == "POST":
         date = request.POST.get('date')
         time = request.POST.get('time')
-        service = request.POST.get('service', f"Follow-up: {original_appointment.service}")
-        
+        service = request.POST.get(
+            'service', f"Follow-up: {original_appointment.service}")
+
         if date and time:
             followup_date = datetime.strptime(date, '%Y-%m-%d').date()
             patient = original_appointment.patient
@@ -833,14 +838,15 @@ def create_followup_appointment(request, appointment_id):
                 patient=patient,
                 date__year=followup_date.year,
                 date__month=followup_date.month,
-                status__in=[Reservations.Status.APPROVED, Reservations.Status.WAITING]
+                status__in=[Reservations.Status.APPROVED,
+                            Reservations.Status.WAITING]
             ).count()
-            
-            max_reservations_per_month = 5  
-            
+
+            max_reservations_per_month = 5
+
             if monthly_reservations_count >= max_reservations_per_month:
-                messages.error(request, 
-                    f"This patient has reached the maximum number of {max_reservations_per_month} reservations for {followup_date.strftime('%B %Y')}.")
+                messages.error(request,
+                               f"This patient has reached the maximum number of {max_reservations_per_month} reservations for {followup_date.strftime('%B %Y')}.")
 
                 context = {
                     'original_appointment': original_appointment,
@@ -856,7 +862,8 @@ def create_followup_appointment(request, appointment_id):
                     service=service,
                     status=Reservations.Status.APPROVED
                 )
-                messages.success(request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
+                messages.success(
+                    request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
                 return redirect('doctor_appointments')
         else:
             messages.error(request, "Please fill in all required fields.")
@@ -872,10 +879,11 @@ def create_followup_appointment(request, appointment_id):
     }
     return render(request, 'accounts/create_followup_appointment.html', context)
 
-    return render( request, 'doctors/patient-list.html', {'appointments': appointments},
-    )
+    return render(request, 'doctors/patient-list.html', {'appointments': appointments},
+                  )
 
 # -------------------------------------------
+
 
 @login_required
 def doctor_add_feedback(request, reservation_id):
@@ -916,3 +924,20 @@ def doctor_add_feedback(request, reservation_id):
         'doctor_add_feedback.html',
         {'reservation': reservation, 'form': form}
     )
+
+
+@login_required
+def increase_capacity(request):
+    if request.method == 'POST':
+        form = IncreaseCapacityForm(request.POST)
+        doctor = request.user.doctor
+        if form.is_valid():
+            new_capacity = form.cleaned_data['new_capacity']
+            doctor.monthly_reservation_capacity = new_capacity
+            doctor.save()
+            messages.success(request, "Capacity updated successfully.")
+            return redirect('doctor_dashboard')
+    else:
+        form = IncreaseCapacityForm()
+
+    return render(request, 'accounts/increase_capacity_form.html', {'form': form})
