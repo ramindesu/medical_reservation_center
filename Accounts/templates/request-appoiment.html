@@ -17,15 +17,20 @@
     {% if appointment %}
       <p>Status: 
         <span class="badge text-dark 
-          {% if appointment.status == 'waiting' %}bg-warning
+          {% if appointment.status == 'waiting' %}
+            {% if appointment.date <= today|add:"2 days" %}bg-danger{% else %}bg-warning{% endif %}
           {% elif appointment.status == 'approved' %}bg-success
           {% elif appointment.status == 'rejected' %}bg-danger
           {% elif appointment.status == 'blocked' %}bg-dark
           {% endif %}">
           {{ appointment.status|capfirst }}
+          {% if appointment.status == 'waiting' and appointment.date <= today|add:"2 days" %}
+            - Urgent
+          {% endif %}
         </span>
       </p>
     {% endif %}
+
 
     <form method="post">
       {% csrf_token %}

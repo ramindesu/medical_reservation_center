@@ -35,7 +35,7 @@ AUTH_USER_MODEL = 'Accounts.User'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 
 ALLOW_PATIENT_REGISTRATION = True
@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'Logs',
     'Front'
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -149,4 +151,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/Avatar/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Avatar')
+
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 LOGOUT_REDIRECT_URL = 'home'

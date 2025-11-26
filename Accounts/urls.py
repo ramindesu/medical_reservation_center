@@ -119,4 +119,6 @@ urlpatterns = [
     path('doctor/requests/<int:reservation_id>/block/',
          views.doctor_block_request,
          name='doctor_block_request'),
+
+
 ]
