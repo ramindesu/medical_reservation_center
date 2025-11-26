@@ -909,6 +909,6 @@ def doctor_add_feedback(request, reservation_id):
 
     return render(
         request,
-        'accounts/doctor_add_feedback.html',
+        'doctor_add_feedback.html',
         {'reservation': reservation, 'form': form}
     )
