@@ -794,8 +794,8 @@ def create_followup_appointment(request, appointment_id):
     original_appointment = get_object_or_404(Reservations, id=appointment_id)
     
     if original_appointment.doctor != request.user.doctor:
-            messages.error(request, "You can only create follow-up for your own appointments.")
-            return redirect('doctor_appointments')
+        messages.error(request, "You can only create follow-up for your own appointments.")
+        return redirect('doctor_appointments')
     
     if not original_appointment.is_in_progress:
         messages.error(request, "You can only create follow-up appointments for today's appointments.")
@@ -807,19 +807,44 @@ def create_followup_appointment(request, appointment_id):
         service = request.POST.get('service', f"Follow-up: {original_appointment.service}")
         
         if date and time:
-            Reservations.objects.create(
-                doctor=request.user.doctor,
-                patient=original_appointment.patient,
-                date=date,
-                time=time,
-                service=service,
-                status=Reservations.Status.APPROVED
-            )
+            followup_date = datetime.strptime(date, '%Y-%m-%d').date()
+            patient = original_appointment.patient
+            monthly_reservations_count = Reservations.objects.filter(
+                patient=patient,
+                date__year=followup_date.year,
+                date__month=followup_date.month,
+                status__in=[Reservations.Status.APPROVED, Reservations.Status.WAITING]
+            ).count()
             
-            messages.success(request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
-            return redirect('doctor_appointments')
+            max_reservations_per_month = 5  
+            
+            if monthly_reservations_count >= max_reservations_per_month:
+                messages.error(request, 
+                    f"This patient has reached the maximum number of {max_reservations_per_month} reservations for {followup_date.strftime('%B %Y')}.")
+
+                context = {
+                    'original_appointment': original_appointment,
+                    'patient': patient,
+                }
+                return render(request, 'accounts/create_followup_appointment.html', context)
+            else:
+                Reservations.objects.create(
+                    doctor=request.user.doctor,
+                    patient=original_appointment.patient,
+                    date=date,
+                    time=time,
+                    service=service,
+                    status=Reservations.Status.APPROVED
+                )
+                messages.success(request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
+                return redirect('doctor_appointments')
         else:
             messages.error(request, "Please fill in all required fields.")
+            context = {
+                'original_appointment': original_appointment,
+                'patient': original_appointment.patient,
+            }
+            return render(request, 'accounts/create_followup_appointment.html', context)
 
     context = {
         'original_appointment': original_appointment,
