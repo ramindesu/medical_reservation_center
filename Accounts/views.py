@@ -746,10 +746,14 @@ def doctor_block_request(request, reservation_id):
 
 # -----------RAMIN------------
 
-
-def patinet_list(request):
+@login_required
+def patient_list(request):   
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
+    
+    doctor = request.user.doctor  
+    today = timezone.now().date()
+    
 
     doctor = request.user.doctor
     now = timezone.now()
@@ -757,7 +761,7 @@ def patinet_list(request):
     appointments = Reservations.objects.filter(
         doctor=doctor,
         status=Reservations.Status.APPROVED,
-        date__lt=now
+        date__lt=today,
     )
 
     return render(request, 'doctors/patient-list.html', {'appointments': appointments})
@@ -863,3 +867,48 @@ def create_followup_appointment(request, appointment_id):
         'patient': original_appointment.patient,
     }
     return render(request, 'accounts/create_followup_appointment.html', context)
+
+    return render( request, 'doctors/patient-list.html', {'appointments': appointments},
+    )
+
+# -------------------------------------------
+
+@login_required
+def doctor_add_feedback(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    if reservation.doctor.user != request.user:
+        return render(request, 'error.html', {
+            'message': 'You can only add feedback for your own patients.'
+        })
+
+    if reservation.status != Reservations.Status.APPROVED:
+        return render(request, 'error.html', {
+            'message': 'Feedback can only be added for approved reservations.'
+        })
+    if reservation.date > timezone.now().date():
+        return render(request, 'error.html', {
+            'message': 'You can only add feedback after the visit date has passed.'
+        })
+
+    if request.method == 'POST':
+        form = FeedBackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.reservation = reservation
+            feedback.doctor = reservation.doctor
+            feedback.patient = reservation.patient
+            feedback.save()
+            messages.success(request, "Feedback sent to patient successfully.")
+            return redirect('doctor_dashboard')
+    else:
+        form = FeedBackForm()
+
+    return render(
+        request,
+        'accounts/doctor_add_feedback.html',
+        {'reservation': reservation, 'form': form}
+    )
