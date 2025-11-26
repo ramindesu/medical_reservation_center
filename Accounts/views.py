@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
 from .forms import IncreaseCapacityForm, UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
-from .models import User, Doctor, Patient
+from .models import User, Doctor, Patient , CapacityIncreaseRequest
 from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
@@ -941,3 +941,77 @@ def increase_capacity(request):
         form = IncreaseCapacityForm()
 
     return render(request, 'accounts/increase_capacity_form.html', {'form': form})
+
+
+# ---------------------
+@login_required
+@admin_required
+def admin_manage_capacity_requests(request):
+    status_filter = request.GET.get('status', 'all')
+    
+    if status_filter == 'approved':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED)
+    elif status_filter == 'rejected':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED)
+    elif status_filter == 'pending':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING)
+    else:
+        requests = CapacityIncreaseRequest.objects.all()
+    
+    requests = requests.order_by('-created_at')
+    
+
+    stats = {
+        'total': CapacityIncreaseRequest.objects.count(),
+        'pending': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING).count(),
+        'approved': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED).count(),
+        'rejected': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED).count(),
+    }
+    
+    context = {
+        'capacity_requests': requests,
+        'stats': stats,
+        'current_filter': status_filter,
+    }
+    return render(request, 'admin/manage_capacity_requests.html', context)
+
+@login_required
+@admin_required
+def approve_capacity_request(request, request_id):
+
+    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    
+    if request.method == "POST":
+
+        capacity_request.doctor.monthly_reservation_capacity = capacity_request.requested_capacity
+        capacity_request.doctor.save()
+        
+
+        capacity_request.status = CapacityIncreaseRequest.Status.APPROVED
+        capacity_request.save()
+        
+        messages.success(
+            request, 
+            f" Capacity increased to {capacity_request.requested_capacity} for Dr. {capacity_request.doctor.user.get_full_name()}"
+        )
+        return redirect('admin_manage_capacity_requests')
+    
+    return redirect('admin_manage_capacity_requests')
+
+@login_required
+@admin_required
+def reject_capacity_request(request, request_id):
+
+    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    
+    if request.method == "POST":
+        capacity_request.status = CapacityIncreaseRequest.Status.REJECTED
+        capacity_request.save()
+        
+        messages.success(
+            request, 
+            f"Capacity request rejected for Dr. {capacity_request.doctor.user.get_full_name()}"
+        )
+        return redirect('admin_manage_capacity_requests')
+    
+    return redirect('admin_manage_capacity_requests')
