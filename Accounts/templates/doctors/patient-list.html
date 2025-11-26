@@ -116,9 +116,10 @@
         </div>
 
 
-        <a href="#" class="action-btn">
-          <i class="bi bi-chat-heart"></i> Feedback
-        </a>
+          {# Go to doctor_add_feedback view for this appointment #}
+          <a href="{% url 'doctor_add_feedback' appt.id %}" class="action-btn">
+            <i class="bi bi-box-arrow-up-right"></i> Feedback
+          </a>
 
       </div>
     {% empty %}

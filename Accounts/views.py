@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, HttpResponse
 from itertools import count
 import re
 from django.conf import settings
@@ -7,13 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
-from .forms import UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
-from .models import User, Doctor, Patient
+from .forms import IncreaseCapacityForm, UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
+from .models import User, Doctor, Patient , CapacityIncreaseRequest
 from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
 from django.db.models import Q
-from datetime import date 
+from datetime import date
 from Reservations.models import Reservations
 from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm
 from .forms import PatientProfileForm, PatientReservationForm, DoctorProfileForm, BlacklistForm, BlockReservationForm, ReservationBlock
@@ -22,9 +22,15 @@ from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
 from django.utils import timezone
-
+from datetime import timedelta
 from Configs.models import Blacklist
 
+from django.contrib.auth import logout
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 
 class CustomLoginView(LoginView):
@@ -145,11 +151,13 @@ def doctor_dashboard(request):
         doctor_instance = request.user.doctor
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
-
+    user = request.user
     reservations = Reservations.objects.filter(
-        doctor=doctor_instance , status=Reservations.Status.APPROVED).order_by('date', 'created_at')
+        doctor=doctor_instance, status=Reservations.Status.APPROVED
+    ).select_related("patient__user").order_by('date', 'created_at')
     context = {
         'doctor': doctor_instance,
+        'user': user,
         'reservations': reservations,
     }
     return render(request, 'accounts/doctor_dashboard.html', context)
@@ -239,8 +247,7 @@ def doctor_reservation(request, doctor_id):
             f"You have reached the maximum number of {max_reservations_per_month} reservations for this month."
         )
         return redirect('patient_dashboard')
-    
-    
+
     if request.method == "POST":
         form = PatientReservationForm(request.POST)
         if form.is_valid():
@@ -258,7 +265,6 @@ def doctor_reservation(request, doctor_id):
             messages.error(request, "Please correct the errors in the form.")
     else:
         form = PatientReservationForm()
-        
 
     return render(request, 'booking/booking.html', {
         'form': form,
@@ -407,7 +413,7 @@ def add_feedback(request, reservation_id):
             feedback.save()
 
         messages.success(request, "Thank you for your feedback!")
-        return redirect('patient_reservations')
+        return redirect('patient_dashboard')
 
     return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
 
@@ -557,14 +563,15 @@ def admin_edit_user(request, user_id):
 @admin_required
 def admin_manage_appointments(request):
     appointments = Reservations.objects.all().order_by('-created_at')
-    blocked_patients = set(Blacklist.objects.filter(active=True).values_list('patient_id', flat=True))
-    
+    blocked_patients = set(Blacklist.objects.filter(
+        active=True).values_list('patient_id', flat=True))
+
     from django.utils import timezone
     from datetime import timedelta
-    two_days_later = timezone.now().date() + timedelta(days=2)    
-    urgent_requests = appointments.filter(date=two_days_later ,status='waiting').exclude(patient_id__in=blocked_patients)
+    two_days_later = timezone.now().date() + timedelta(days=2)
+    urgent_requests = appointments.filter(
+        date=two_days_later, status='waiting').exclude(patient_id__in=blocked_patients)
 
-  
     from django.utils import timezone
     from datetime import timedelta
     tomorrow = timezone.now().date() + timedelta(days=1)
@@ -655,6 +662,7 @@ def edit_appointment(request, appointment_id):
     })
 # --------------------------------------------------------------------------
 
+
 @login_required
 def doctor_requests(request):
     if request.user.role != User.Role.DOCTOR:
@@ -662,15 +670,33 @@ def doctor_requests(request):
 
     doctor = request.user.doctor
 
+  
     blacklisted_patients = Blacklist.objects.filter(
         doctor=doctor,
         active=True
     ).values_list("patient_id", flat=True)
 
-    reservations = Reservations.objects.filter(
+    today = timezone.now().date()
+    two_days_later = today + timedelta(days=2)
+
+ 
+    waiting_reservations = Reservations.objects.filter(
         doctor=doctor,
         status=Reservations.Status.WAITING
-    ).exclude(patient_id__in=blacklisted_patients).order_by("date", "time")
+    ).exclude(patient_id__in=blacklisted_patients)
+
+    
+    urgent_requests = waiting_reservations.filter(
+        date__lte=two_days_later
+    ).order_by('date', 'time')
+
+    
+    normal_requests = waiting_reservations.filter(
+        date__gt=two_days_later
+    ).order_by('-created_at')
+
+
+    reservations = list(urgent_requests) + list(normal_requests)
 
     return render(request, "accounts/doctor_requests.html", {
         "doctor": doctor,
@@ -679,31 +705,27 @@ def doctor_requests(request):
     })
 
 
-
 @login_required
 def doctor_accept(request, reservation_id):
-    reservation = get_object_or_404(Reservations, id=reservation_id)
-
     if request.user.role != User.Role.DOCTOR:
         return render(request, "error.html", {"message": "Access denied"})
-
+    reservation = get_object_or_404(Reservations, id=reservation_id)
     doctor = request.user.doctor
 
+    doctor.monthly_reservation_capacity -= 1
+    doctor.save()
+
     reservation.status = Reservations.Status.APPROVED
-    reservation.doctor = doctor
     reservation.save()
 
- 
     Reservations.objects.filter(
         date=reservation.date,
-        time=reservation.time,
+        # time=reservation.time,
         doctor__specialty=doctor.specialty
     ).exclude(id=reservation.id).delete()
 
     messages.success(request, "Appointment approved successfully.")
     return redirect("doctor_requests")
-
-
 
 
 @login_required
@@ -727,45 +749,43 @@ def doctor_blacklist(request, reservation_id):
     reservation = get_object_or_404(Reservations, id=reservation_id)
 
     if request.user.role != User.Role.DOCTOR:
-        return render(request, "error.html", {"message": "Access denied"})
+        messages.error(request, "Access denied")
+        return redirect("doctor_requests")
 
     doctor = request.user.doctor
     patient = reservation.patient
     reason = request.POST.get("reason", "Blocked by doctor")
 
-    bl, created = Blacklist.objects.get_or_create(
-        doctor=doctor,
-        patient=patient,
-        defaults={'reason': reason, 'active': True}
-    )
-    if not created:
-        bl.active = True
-        bl.reason = reason
-        bl.save()
+    if request.method == "POST":
+        form = BlacklistForm(request.POST)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            bl, created = Blacklist.objects.get_or_create(
+                doctor=doctor,
+                patient=patient,
+                defaults={'reason': reason, 'active': True}
+            )
+            if not created:
+                bl.active = True
+                bl.reason = reason
+                bl.save()
+            messages.success(
+                request, f"{patient.user.get_full_name} has been blacklisted.")
+            return redirect("doctor_requests")
+    else:
+        form = BlacklistForm()
 
-  
-    Reservations.objects.filter(
-        patient=patient,
-        doctor=doctor
-    ).update(status=Reservations.Status.BLOCKED)
-
-    
-    reservation.refresh_from_db()
-
-    messages.success(request, "Patient has been blacklisted and related reservations blocked.")
-    return redirect("doctor_requests")
+    return render(request, "accounts/doctor_blacklist.html", {"form": form, "patient": patient})
 
 
 @login_required
 def doctor_block_request(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
     
-    reservation = get_object_or_404(
-        Reservations.objects.select_related('patient__user', 'doctor__user'),
-        id=reservation_id
-    )
-
     if request.user.role != User.Role.DOCTOR:
-        return render(request, "error.html", {"message": "Access denied"})
+        messages.error(request, "Access denied")
+        return redirect("doctor_requests")
+    
 
     if request.method == 'POST':
         form = BlockReservationForm(request.POST)
@@ -775,19 +795,24 @@ def doctor_block_request(request, reservation_id):
        
             blocked_request, created = ReservationBlock.objects.update_or_create(
                 reservation=reservation,
-                defaults={'reason': reason, 'active': True}
+                defaults={
+                    'reason': form.cleaned_data['reason'], 'active': True}
             )
-
+            if not created:
+                blocked_request.active = True
+                blocked_request.reason = form.cleaned_data['reason']
+                blocked_request.save()
+            
+        
             reservation.status = Reservations.Status.BLOCKED
-            reservation.save(update_fields=['status'])
+            reservation.save()
 
-            messages.success(request, "Reservation has been blocked successfully.")
+            messages.success(request, "Request has been blocked successfully.")
             return redirect('doctor_requests')
     else:
         form = BlockReservationForm()
 
-    return render(request, 'accounts/block_request.html', {'form': form, 'reservation': reservation})
-
+    return render(request, 'accounts/block_request.html', {'form': form})
 
 
 
@@ -795,37 +820,264 @@ def doctor_block_request(request, reservation_id):
 
 # -----------RAMIN------------
 
-
-def patinet_list(request):
+@login_required
+def patient_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
-    
-    doctor = request.user.doctor  
+
+    doctor = request.user.doctor
+    today = timezone.now().date()
+
+    doctor = request.user.doctor
     now = timezone.now()
-    
+
     appointments = Reservations.objects.filter(
         doctor=doctor,
         status=Reservations.Status.APPROVED,
-        date__lt=now
+        date__lt=today,
     )
 
     return render(request, 'doctors/patient-list.html', {'appointments': appointments})
 
 # ----------------------------
+
+
 @login_required
 def doctor_appointments(request):
     try:
         doctor_instance = request.user.doctor
     except Doctor.DoesNotExist:
         return render(request, 'accounts/error.html', {'message': 'No doctor profile found.'})
-
+    user = request.user
     appointments = Reservations.objects.filter(
-        doctor=doctor_instance, 
+        doctor=doctor_instance,
         status=Reservations.Status.APPROVED
-    ).order_by('date', 'time')
-    
+    ).select_related('patient__user').order_by('date', 'time')
+
     context = {
         'doctor': doctor_instance,
+        'user': user,
         'appointments': appointments,
     }
     return render(request, 'accounts/doctor_appointments.html', context)
+
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    appointment = get_object_or_404(Reservations, id=appointment_id)
+    if appointment.patient != request.user.patient:
+        return render(request, 'error.html', {'message': 'Access denied'})
+    if appointment.status != Reservations.Status.WAITING:
+        messages.error(request, "Only waiting appointments can be canceled.")
+        return redirect('patient_reservations')
+    appointment.status = Reservations.Status.CANCELED
+    appointment.save()
+    messages.success(request, "Appointment canceled successfully.")
+    return redirect('patient_dashboard')
+
+
+@login_required
+def create_followup_appointment(request, appointment_id):
+    original_appointment = get_object_or_404(Reservations, id=appointment_id)
+
+    if original_appointment.doctor != request.user.doctor:
+        messages.error(
+            request, "You can only create follow-up for your own appointments.")
+        return redirect('doctor_appointments')
+
+    if not original_appointment.is_in_progress:
+        messages.error(
+            request, "You can only create follow-up appointments for today's appointments.")
+        return redirect('doctor_appointments')
+
+    if request.method == "POST":
+        date = request.POST.get('date')
+        time = request.POST.get('time')
+        service = request.POST.get(
+            'service', f"Follow-up: {original_appointment.service}")
+
+        if date and time:
+            followup_date = datetime.strptime(date, '%Y-%m-%d').date()
+            patient = original_appointment.patient
+            monthly_reservations_count = Reservations.objects.filter(
+                patient=patient,
+                date__year=followup_date.year,
+                date__month=followup_date.month,
+                status__in=[Reservations.Status.APPROVED,
+                            Reservations.Status.WAITING]
+            ).count()
+
+            max_reservations_per_month = 5
+
+            if monthly_reservations_count >= max_reservations_per_month:
+                messages.error(request,
+                               f"This patient has reached the maximum number of {max_reservations_per_month} reservations for {followup_date.strftime('%B %Y')}.")
+
+                context = {
+                    'original_appointment': original_appointment,
+                    'patient': patient,
+                }
+                return render(request, 'accounts/create_followup_appointment.html', context)
+            else:
+                Reservations.objects.create(
+                    doctor=request.user.doctor,
+                    patient=original_appointment.patient,
+                    date=date,
+                    time=time,
+                    service=service,
+                    status=Reservations.Status.APPROVED
+                )
+                messages.success(
+                    request, f"Follow-up appointment created for {original_appointment.patient.user.get_full_name()}!")
+                return redirect('doctor_appointments')
+        else:
+            messages.error(request, "Please fill in all required fields.")
+            context = {
+                'original_appointment': original_appointment,
+                'patient': original_appointment.patient,
+            }
+            return render(request, 'accounts/create_followup_appointment.html', context)
+
+    context = {
+        'original_appointment': original_appointment,
+        'patient': original_appointment.patient,
+    }
+    return render(request, 'accounts/create_followup_appointment.html', context)
+
+    return render(request, 'doctors/patient-list.html', {'appointments': appointments},
+                  )
+
+# -------------------------------------------
+
+
+@login_required
+def doctor_add_feedback(request, reservation_id):
+    reservation = get_object_or_404(Reservations, id=reservation_id)
+
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    if reservation.doctor.user != request.user:
+        return render(request, 'error.html', {
+            'message': 'You can only add feedback for your own patients.'
+        })
+
+    if reservation.status != Reservations.Status.APPROVED:
+        return render(request, 'error.html', {
+            'message': 'Feedback can only be added for approved reservations.'
+        })
+    if reservation.date > timezone.now().date():
+        return render(request, 'error.html', {
+            'message': 'You can only add feedback after the visit date has passed.'
+        })
+
+    if request.method == 'POST':
+        form = FeedBackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.reservation = reservation
+            feedback.doctor = reservation.doctor
+            feedback.patient = reservation.patient
+            feedback.save()
+            messages.success(request, "Feedback sent to patient successfully.")
+            return redirect('doctor_dashboard')
+    else:
+        form = FeedBackForm()
+
+    return render(
+        request,
+        'doctor_add_feedback.html',
+        'doctor_add_feedback.html',
+        {'reservation': reservation, 'form': form}
+    )
+
+
+@login_required
+def increase_capacity(request):
+    if request.method == 'POST':
+        form = IncreaseCapacityForm(request.POST)
+        doctor = request.user.doctor
+        if form.is_valid():
+            new_capacity = form.cleaned_data['new_capacity']
+            doctor.monthly_reservation_capacity = new_capacity
+            doctor.save()
+            messages.success(request, "Capacity updated successfully.")
+            return redirect('doctor_dashboard')
+    else:
+        form = IncreaseCapacityForm()
+
+    return render(request, 'accounts/increase_capacity_form.html', {'form': form})
+
+
+# ---------------------
+@login_required
+@admin_required
+def admin_manage_capacity_requests(request):
+    status_filter = request.GET.get('status', 'all')
+    
+    if status_filter == 'approved':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED)
+    elif status_filter == 'rejected':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED)
+    elif status_filter == 'pending':
+        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING)
+    else:
+        requests = CapacityIncreaseRequest.objects.all()
+    
+    requests = requests.order_by('-created_at')
+    
+
+    stats = {
+        'total': CapacityIncreaseRequest.objects.count(),
+        'pending': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING).count(),
+        'approved': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED).count(),
+        'rejected': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED).count(),
+    }
+    
+    context = {
+        'capacity_requests': requests,
+        'stats': stats,
+        'current_filter': status_filter,
+    }
+    return render(request, 'admin/manage_capacity_requests.html', context)
+
+@login_required
+@admin_required
+def approve_capacity_request(request, request_id):
+
+    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    
+    if request.method == "POST":
+
+        capacity_request.doctor.monthly_reservation_capacity = capacity_request.requested_capacity
+        capacity_request.doctor.save()
+        
+
+        capacity_request.status = CapacityIncreaseRequest.Status.APPROVED
+        capacity_request.save()
+        
+        messages.success(
+            request, 
+            f" Capacity increased to {capacity_request.requested_capacity} for Dr. {capacity_request.doctor.user.get_full_name()}"
+        )
+        return redirect('admin_manage_capacity_requests')
+    
+    return redirect('admin_manage_capacity_requests')
+
+@login_required
+@admin_required
+def reject_capacity_request(request, request_id):
+
+    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    
+    if request.method == "POST":
+        capacity_request.status = CapacityIncreaseRequest.Status.REJECTED
+        capacity_request.save()
+        
+        messages.success(
+            request, 
+            f"Capacity request rejected for Dr. {capacity_request.doctor.user.get_full_name()}"
+        )
+        return redirect('admin_manage_capacity_requests')
+    
+    return redirect('admin_manage_capacity_requests')
