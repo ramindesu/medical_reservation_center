@@ -23,7 +23,7 @@ from Reservations.models import FeedBack
 from django.db.models import Avg, Count
 from django.utils import timezone
 from datetime import timedelta
-from Configs.models import Blacklist
+from Configs.models import Blacklist, Config
 
 from django.contrib.auth import logout
 
@@ -994,19 +994,28 @@ def doctor_add_feedback(request, reservation_id):
 
 @login_required
 def increase_capacity(request):
-    if request.method == 'POST':
+
+    if request.user.role != User.Role.DOCTOR:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    doctor = request.user.doctor
+
+    if request.method == "POST":
         form = IncreaseCapacityForm(request.POST)
-        doctor = request.user.doctor
         if form.is_valid():
             new_capacity = form.cleaned_data['new_capacity']
-            doctor.monthly_reservation_capacity = new_capacity
-            doctor.save()
-            messages.success(request, "Capacity updated successfully.")
-            return redirect('doctor_dashboard')
+            key = f"doctor_capacity_request_{doctor.user.id}"
+            Config.objects.update_or_create(
+                key=key,
+                defaults={"value": str(new_capacity)}
+            )
+            messages.success(
+                request, "Your capacity increase request has been submitted.")
+            return redirect("doctor_dashboard")
     else:
         form = IncreaseCapacityForm()
 
-    return render(request, 'accounts/increase_capacity_form.html', {'form': form})
+    return render(request, "accounts/increase_capacity_form.html", {"form": form})
 
 
 # ---------------------

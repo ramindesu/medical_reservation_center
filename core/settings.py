@@ -98,8 +98,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'medical_db'),
-        'USER': os.getenv('DB_USER', 'medical_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
         # 'USER': os.getenv('DB_USER', 'postgres'),
         # 'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
         'HOST': os.getenv('DB_HOST', 'localhost'),

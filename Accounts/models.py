@@ -158,6 +158,11 @@ class CapacityIncreaseRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.current_capacity = self.doctor.monthly_reservation_capacity
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Capacity request - Dr. {self.doctor.user.get_full_name()}"
     

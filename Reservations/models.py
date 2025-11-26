@@ -3,13 +3,17 @@ from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
 from datetime import time , datetime
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-
-
+def validate_not_past(value):
+    today = timezone.localdate()
+    if value < today:
+        raise ValidationError("You cannot create a reservation for a past date.")
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(validators=[validate_not_past])
     time = models.TimeField(default=time(9,0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
