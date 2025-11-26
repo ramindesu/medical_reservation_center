@@ -397,7 +397,7 @@ def add_feedback(request, reservation_id):
             feedback.save()
 
         messages.success(request, "Thank you for your feedback!")
-        return redirect('patient_reservations')
+        return redirect('patient_dashboard')
 
     return render(request, 'accounts/add_feedback.html', {'reservation': reservation, 'form': FeedBackForm()})
 
