@@ -55,10 +55,31 @@
         .search-card input::placeholder {
             color: rgba(255,255,255,0.7);
         }
+        .btn-home {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+            border-radius: 10px;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn-home:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+
+        <!-- Back to Home Button -->
+        <div class="mb-4">
+            <a href="{% url 'home' %}" class="btn btn-home">
+                <i class="bi bi-house-door"></i> Back to Home
+            </a>
+        </div>
       
         <div class="text-center text-white mb-5">
             <h1 class="display-4"><i class="bi bi-heart-pulse"></i> Our Specialist Doctors</h1>

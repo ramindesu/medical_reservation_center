@@ -71,6 +71,17 @@
             color: #ffffff;
             filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.4));
         }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -112,11 +123,15 @@
                 <i class="bi bi-pencil-square"></i> Edit Profile
             </a>
 
-            <a href="{% url 'change_password' %}" class="btn btn-glass">
+            <a href="{% url 'change_password' %}" class="btn btn-glass me-2">
                 <i class="bi bi-key"></i> Change Password
             </a>
 
-            <a href="{% url 'home' %}" class="btn btn-glass ms-2">
+            <a href="{% url 'home' %}" class="btn btn-primary me-2">
+                <i class="bi bi-house-door"></i> Back to Home
+            </a>
+
+            <a href="{% url 'logout' %}" class="btn btn-glass">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </a>
         </div>
@@ -130,7 +145,7 @@
         </h3>
         <p>You have {{ reservations.count }} upcoming appointments.</p>
 
-        <a href="{%url 'doctor_appointments'%}" class="btn btn-glass">
+        <a href="{% url 'doctor_appointments' %}" class="btn btn-glass">
             <i class="bi bi-calendar-week"></i>
             View Appointment List
         </a>
