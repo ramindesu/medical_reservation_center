@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, HttpResponse
 from itertools import count
 import re
 from django.conf import settings
@@ -22,7 +22,7 @@ from django.urls import reverse_lazy
 from Reservations.models import FeedBack
 from django.db.models import Avg, Count
 from django.utils import timezone
-
+from datetime import timedelta
 from Configs.models import Blacklist
 
 
@@ -627,15 +627,33 @@ def doctor_requests(request):
 
     doctor = request.user.doctor
 
+  
     blacklisted_patients = Blacklist.objects.filter(
         doctor=doctor,
         active=True
     ).values_list("patient_id", flat=True)
 
-    reservations = Reservations.objects.filter(
+    today = timezone.now().date()
+    two_days_later = today + timedelta(days=2)
+
+ 
+    waiting_reservations = Reservations.objects.filter(
         doctor=doctor,
         status=Reservations.Status.WAITING
-    ).exclude(patient_id__in=blacklisted_patients).order_by("date", "time")
+    ).exclude(patient_id__in=blacklisted_patients)
+
+    
+    urgent_requests = waiting_reservations.filter(
+        date__lte=two_days_later
+    ).order_by('date', 'time')
+
+    
+    normal_requests = waiting_reservations.filter(
+        date__gt=two_days_later
+    ).order_by('-created_at')
+
+
+    reservations = list(urgent_requests) + list(normal_requests)
 
     return render(request, "accounts/doctor_requests.html", {
         "doctor": doctor,
@@ -721,6 +739,10 @@ def doctor_blacklist(request, reservation_id):
 def doctor_block_request(request, reservation_id):
     reservation = get_object_or_404(Reservations, id=reservation_id)
     
+    if request.user.role != User.Role.DOCTOR:
+        messages.error(request, "Access denied")
+        return redirect("doctor_requests")
+    
     if request.method == 'POST':
         form = BlockReservationForm(request.POST)
         if form.is_valid():
@@ -732,12 +754,18 @@ def doctor_block_request(request, reservation_id):
                 blocked_request.active = True
                 blocked_request.reason = form.cleaned_data['reason']
                 blocked_request.save()
+            
+        
+            reservation.status = Reservations.Status.BLOCKED
+            reservation.save()
+
             messages.success(request, "Request has been blocked successfully.")
             return redirect('doctor_requests')
     else:
         form = BlockReservationForm()
     
     return render(request, 'accounts/block_request.html', {'form': form})
+
 
 
 
@@ -799,6 +827,6 @@ def doctor_add_feedback(request, reservation_id):
 
     return render(
         request,
-        'accounts/doctor_add_feedback.html',
+        'doctor_add_feedback.html',
         {'reservation': reservation, 'form': form}
     )

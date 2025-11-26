@@ -110,6 +110,7 @@
 
 <div class="dashboard-container">
 
+ 
     <div class="glass-box text-center">
         <i class="bi bi-person-circle profile-icon"></i>
 
@@ -128,11 +129,13 @@
             <a href="{% url 'change_password' %}" class="btn btn-glass">
                 <i class="bi bi-key"></i> Change Password
             </a>
+
             <a href="{% url 'home' %}" class="btn btn-glass ms-2">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </a>
         </div>
     </div>
+
 
     <div class="glass-box">
         <h3><i class="bi bi-calendar-check"></i> Book a New Appointment</h3>
@@ -143,6 +146,7 @@
         </a>
     </div>
 
+    <!-- Appointment History -->
     <div class="glass-box">
         <h3><i class="bi bi-clock-history"></i> Appointment History</h3>
 
@@ -158,7 +162,7 @@
                             <span class="badge bg-success badge-status">Approved</span>
                         {% elif res.status == "waiting" %}
                             <span class="badge bg-warning text-dark badge-status">Waiting</span>
-                        {% elif res.status == "rejected" %}
+                        {% elif res.status == "rejected" or res.status == "blocked" %}
                             <span class="badge bg-danger badge-status">Rejected</span>
                         {% else %}
                             <span class="badge bg-secondary badge-status">Canceled</span>
@@ -199,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
-
 
 </body>
 </html>
