@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator , MaxLengthValidator
 from Wallet.models import Wallet
 from django.utils import timezone
+from django.db.models import Avg
 
 
 class User(AbstractUser):
@@ -28,6 +29,25 @@ class User(AbstractUser):
         PATIENT = "patient", "Patient"
 
     role = models.CharField(max_length=10, choices=Role.choices)
+
+    @property
+    def average_rate(self):
+
+        if self.is_doctor():
+            try:
+                doctor = self.doctor 
+
+                from Reservations.models import Feedback
+                result = Feedback.objects.filter(doctor=doctor).aggregate(avg_rate=Avg('rate'))
+                return result['avg_rate'] or 0
+            except Doctor.DoesNotExist:
+                return 0
+        else:
+
+            result = User.objects.aggregate(avg_rate=Avg('rate'))
+            return result['avg_rate'] or 0
+
+
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.role})"
