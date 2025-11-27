@@ -2,23 +2,19 @@ from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Avg, Count
+from datetime import time , datetime
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-
-
-
 
 def validate_not_past(value):
     today = timezone.localdate()
     if value < today:
         raise ValidationError("You cannot create a reservation for a past date.")
-
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateField(validators=[validate_not_past])
-    time = models.CharField( max_length=5, default="9:00")
+    time = models.TimeField(default=time(9,0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service = models.CharField(max_length=100)
@@ -31,12 +27,26 @@ class Reservations(models.Model):
         BLOCKED = "blocked", "Blocked"
 
     status = models.CharField(
-        max_length=15,
-        choices=Status.choices,
-        default=Status.WAITING,
-    )
+        max_length=15, choices=Status.choices, default=Status.WAITING)
+    
+
+    
+    @property
+    def display_status(self):
+       
+        from Configs.models import Blacklist
+        if Blacklist.objects.filter(doctor=self.doctor, patient=self.patient, active=True).exists():
+            return Reservations.Status.BLOCKED
+        return self.status
+
     def __str__(self):
         return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
+    
+    @property
+    def is_in_progress(self):
+        system_date = datetime.now().date()
+        return self.date == system_date
+
 
     class Meta:
         verbose_name = "Reservation"

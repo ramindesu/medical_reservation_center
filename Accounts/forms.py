@@ -1,3 +1,4 @@
+from Configs.models import Config
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, Doctor, Patient
@@ -5,6 +6,7 @@ from Medical_Archive.models import Specialty
 from Reservations.models import Reservations, FeedBack
 from Wallet.models import Wallet
 from Configs.models import Blacklist, ReservationBlock
+
 
 class UserRegistrationForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -52,16 +54,20 @@ class UserRegistrationForm(UserCreationForm):
 class DoctorReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['date', 'service']
+        fields = ['date', 'time', 'service']
 
         widgets = {
 
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+
         }
         labels = {
             'date': 'Date',
+            'time': 'Time',
             'service': 'Service',
+
         }
 
 
@@ -155,13 +161,15 @@ class DoctorProfileForm(forms.ModelForm):
 class PatientReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['doctor', 'date', 'service']
+        fields = ['date', 'service']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
-            'doctor': forms.Select(attrs={'class': 'form-select'}),
+
         }
 # ------------------------
+
+
 class AdminUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Password',
@@ -312,6 +320,7 @@ class FeedBackForm(forms.ModelForm):
         }
 # -----------------------------------------------------------
 
+
 class BlacklistForm(forms.ModelForm):
     class Meta:
         model = Blacklist
@@ -324,7 +333,6 @@ class BlacklistForm(forms.ModelForm):
         }
 
 
-
 class BlockReservationForm(forms.ModelForm):
     class Meta:
         model = ReservationBlock
@@ -335,3 +343,21 @@ class BlockReservationForm(forms.ModelForm):
         labels = {
             'reason': 'Reason',
         }
+
+
+class IncreaseCapacityForm(forms.Form):
+    new_capacity = forms.IntegerField(
+        label='New Monthly Reservation Capacity',
+        min_value=1,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control glass-input',
+            'placeholder': 'Enter new capacity...'
+        })
+    )
+    def clean_new_capacity(self):
+        capacity = self.cleaned_data['new_capacity']
+        if capacity < 1 or capacity > 50:
+            raise forms.ValidationError(
+                "Capacity must be between 1 and 50.")
+        return capacity
