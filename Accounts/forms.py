@@ -349,7 +349,7 @@ class IncreaseCapacityForm(forms.Form):
     new_capacity = forms.IntegerField(
         label='New Monthly Reservation Capacity',
         min_value=1,
-        max_value=50,
+        max_value=100,
         widget=forms.NumberInput(attrs={
             'class': 'form-control glass-input',
             'placeholder': 'Enter new capacity...'

@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
 from .forms import IncreaseCapacityForm, UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
-from .models import User, Doctor, Patient , CapacityIncreaseRequest
+from .models import User, Doctor, Patient 
 from Reservations.models import Reservations
 from Wallet.models import Wallet
 from Medical_Archive.models import Specialty
@@ -24,6 +24,7 @@ from django.db.models import Avg, Count
 from django.utils import timezone
 from datetime import timedelta
 from Configs.models import Blacklist, Config
+from django import template
 
 from django.contrib.auth import logout
 
@@ -452,6 +453,30 @@ def admin_dashboard(request):
 
     recent_appointments = Reservations.objects.all().order_by(
         '-created_at')[:5]
+    
+    from Configs.models import Config
+    recent_capacity_requests = []
+    config_requests = Config.objects.filter(key__startswith="capacity_request_doctor_").order_by('-created_at')[:5]
+    for config in config_requests:
+        try:
+            doctor_id = config.key.split('_')[-1]
+            doctor = Doctor.objects.get(user_id=doctor_id)
+            
+            description = config.description or ""
+            status_start = description.find("Status: ")
+            status = description[status_start + 7:].strip() if status_start != -1 else "pending"
+            
+            recent_capacity_requests.append({
+                'id': config.id,
+                'doctor': doctor,
+                'current_capacity': doctor.monthly_reservation_capacity,
+                'requested_capacity': int(config.value),
+                'reason': description,
+                'status': status,
+                'created_at': config.created_at,
+            })
+        except (Doctor.DoesNotExist, ValueError):
+            continue
 
     context = {
         'total_patients': total_patients,
@@ -460,6 +485,7 @@ def admin_dashboard(request):
         'today_appointments': today_appointments,
         'users': recent_users,
         'appointments': recent_appointments,
+        'recent_capacity_requests': recent_capacity_requests,
     }
     return render(request, 'admin/dashboard.html', context)
 
@@ -994,99 +1020,176 @@ def doctor_add_feedback(request, reservation_id):
 
 @login_required
 def increase_capacity(request):
-
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
 
     doctor = request.user.doctor
+    
+    current_month = timezone.now().date().replace(day=1)
+    current_reservations = Reservations.objects.filter(
+        doctor=doctor,
+        status=Reservations.Status.APPROVED,
+        date__year=current_month.year,
+        date__month=current_month.month
+    ).count()
+    
+    if current_reservations < doctor.monthly_reservation_capacity:
+        messages.warning(
+            request, 
+            f"You still have {doctor.monthly_reservation_capacity - current_reservations} available slots. "
+            f"You can request capacity increase when you reach your current limit."
+        )
+        return redirect('doctor_dashboard')
 
     if request.method == "POST":
         form = IncreaseCapacityForm(request.POST)
         if form.is_valid():
             new_capacity = form.cleaned_data['new_capacity']
-            key = f"doctor_capacity_request_{doctor.user.id}"
+            reason = request.POST.get('reason', '')
+            
+            key = f"capacity_request_doctor_{doctor.user_id}"
             Config.objects.update_or_create(
                 key=key,
-                defaults={"value": str(new_capacity)}
+                defaults={
+                    "value": str(new_capacity),
+                    "description": f"Capacity: {doctor.monthly_reservation_capacity}→{new_capacity}. Reason: {reason}. Status: pending"
+                }
             )
+            
             messages.success(
-                request, "Your capacity increase request has been submitted.")
+                request, 
+                "Your capacity increase request has been submitted for admin approval."
+            )
             return redirect("doctor_dashboard")
     else:
         form = IncreaseCapacityForm()
 
-    return render(request, "accounts/increase_capacity_form.html", {"form": form})
+    return render(request, "accounts/increase_capacity_form.html", {
+        "form": form,
+        "doctor": doctor,
+        "current_reservations": current_reservations
+    })
 
 
 # ---------------------
 @login_required
 @admin_required
 def admin_manage_capacity_requests(request):
+    from Configs.models import Config
+    
+    capacity_requests = []
+    config_requests = Config.objects.filter(key__startswith="capacity_request_doctor_")
+    
+    for config in config_requests:
+        try:
+
+            doctor_id = config.key.split('_')[-1]
+            doctor = Doctor.objects.get(user_id=doctor_id)
+            
+
+            desc_parts = config.description.split('. ')
+            capacity_info = desc_parts[0].replace('Capacity: ', '')
+            current, requested = capacity_info.split('→')
+            reason = desc_parts[1].replace('Reason: ', '') if len(desc_parts) > 1 else ""
+            status = desc_parts[2].replace('Status: ', '') if len(desc_parts) > 2 else "pending"
+            
+            capacity_requests.append({
+                'id': config.id,  
+                'doctor': doctor,
+                'current_capacity': int(current),
+                'requested_capacity': int(requested),
+                'reason': reason,
+                'status': status,
+                'created_at': config.created_at,
+                'config_obj': config  
+            })
+        except (ValueError, Doctor.DoesNotExist, IndexError):
+            continue
+
+
     status_filter = request.GET.get('status', 'all')
-    
-    if status_filter == 'approved':
-        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED)
-    elif status_filter == 'rejected':
-        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED)
-    elif status_filter == 'pending':
-        requests = CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING)
-    else:
-        requests = CapacityIncreaseRequest.objects.all()
-    
-    requests = requests.order_by('-created_at')
-    
+    if status_filter != 'all':
+        capacity_requests = [req for req in capacity_requests if req['status'] == status_filter]
 
     stats = {
-        'total': CapacityIncreaseRequest.objects.count(),
-        'pending': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.PENDING).count(),
-        'approved': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.APPROVED).count(),
-        'rejected': CapacityIncreaseRequest.objects.filter(status=CapacityIncreaseRequest.Status.REJECTED).count(),
+        'total': len(capacity_requests),
+        'pending': len([req for req in capacity_requests if req['status'] == 'pending']),
+        'approved': len([req for req in capacity_requests if req['status'] == 'approved']),
+        'rejected': len([req for req in capacity_requests if req['status'] == 'rejected']),
     }
     
     context = {
-        'capacity_requests': requests,
+        'capacity_requests': capacity_requests,
         'stats': stats,
         'current_filter': status_filter,
     }
     return render(request, 'admin/manage_capacity_requests.html', context)
+# ----------------
 
 @login_required
 @admin_required
 def approve_capacity_request(request, request_id):
-
-    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    from Configs.models import Config
+    
+    config_request = get_object_or_404(Config, id=request_id)
     
     if request.method == "POST":
+        try:
+            doctor_id = config_request.key.split('_')[-1]
+            doctor = Doctor.objects.get(user_id=doctor_id)
+            
 
-        capacity_request.doctor.monthly_reservation_capacity = capacity_request.requested_capacity
-        capacity_request.doctor.save()
-        
+            requested_capacity = int(config_request.value)
+            
 
-        capacity_request.status = CapacityIncreaseRequest.Status.APPROVED
-        capacity_request.save()
+            doctor.monthly_reservation_capacity = requested_capacity
+            doctor.save()
+            
+
+            old_description = config_request.description or ""
+            new_description = old_description.replace("Status: pending", "Status: approved")
+            config_request.description = new_description
+            config_request.save()
+            
+            messages.success(
+                request, 
+                f"Capacity increased to {requested_capacity} for Dr. {doctor.user.get_full_name()}"
+            )
+        except (ValueError, Doctor.DoesNotExist, IndexError, AttributeError) as e:
+            messages.error(request, f" Error processing request: {str(e)}")
         
-        messages.success(
-            request, 
-            f" Capacity increased to {capacity_request.requested_capacity} for Dr. {capacity_request.doctor.user.get_full_name()}"
-        )
-        return redirect('admin_manage_capacity_requests')
+        return redirect('admin_manage_capacity_requests')  
     
+
     return redirect('admin_manage_capacity_requests')
 
 @login_required
 @admin_required
 def reject_capacity_request(request, request_id):
-
-    capacity_request = get_object_or_404(CapacityIncreaseRequest, id=request_id)
+    from Configs.models import Config
+    
+    config_request = get_object_or_404(Config, id=request_id)
     
     if request.method == "POST":
-        capacity_request.status = CapacityIncreaseRequest.Status.REJECTED
-        capacity_request.save()
+        try:
+
+            doctor_id = config_request.key.split('_')[-1]
+            doctor = Doctor.objects.get(user_id=doctor_id)
+            
+
+            old_description = config_request.description or ""
+            new_description = old_description.replace("Status: pending", "Status: rejected")
+            config_request.description = new_description
+            config_request.save()
+            
+            messages.success(
+                request, 
+                f"Capacity request rejected for Dr. {doctor.user.get_full_name()}"
+            )
+        except (ValueError, Doctor.DoesNotExist, IndexError, AttributeError) as e:
+            messages.error(request, f" Error processing request: {str(e)}")
         
-        messages.success(
-            request, 
-            f"Capacity request rejected for Dr. {capacity_request.doctor.user.get_full_name()}"
-        )
-        return redirect('admin_manage_capacity_requests')
+        return redirect('admin_manage_capacity_requests')  
     
+
     return redirect('admin_manage_capacity_requests')
