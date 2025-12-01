@@ -1,4 +1,11 @@
+# Global html/js/css
 *.html linguist-vendored
-**/templates/** linguist-vendored
+*.htm linguist-vendored
 *.css linguist-vendored
 *.js linguist-vendored
+
+# Any templates folder in any depth
+**/templates/** linguist-vendored
+
+# Force-mark Front as vendored
+Front/** linguist-vendored
