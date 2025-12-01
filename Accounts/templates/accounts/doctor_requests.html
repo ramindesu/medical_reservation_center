@@ -111,9 +111,30 @@
                     <td>{{ r.time }}</td>
                     <td>{{ r.service }}</td>
                     <td>
-                        <span class="badge bg-info text-dark badge-status">
-                            {{ r.get_status_display }}
-                        </span>
+                        {% if r.status == 'waiting' %}
+                            {% if r.date <= two_days_later %}
+                                <span class="badge bg-danger text-white badge-status">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Urgent
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark badge-status">
+                                    <i class="bi bi-clock-fill"></i> Waiting
+                                </span>
+                            {% endif %}
+                        {% elif r.status == 'approved' %}
+                            <span class="badge bg-success text-white badge-status">
+                                Approved
+                            </span>
+                        {% elif r.status == 'rejected' %}
+                            <span class="badge bg-secondary text-white badge-status">
+                                Rejected
+                            </span>
+                        {% elif r.status == 'blocked' %}
+                            <span class="badge bg-dark text-white badge-status">
+                                Blocked
+                            </span>
+                        {% endif %}
+
                     </td>
                     <td class="text-end">
                         <a href="{% url 'doctor_accept' r.id %}" class="btn btn-success btn-sm me-1">
@@ -155,7 +176,7 @@
                     </div>
                 </div>
 
-                <!-- Modal: Block Patient -->
+                
                 <div class="modal fade" id="blockPatientModal{{ r.id }}" tabindex="-1" 
                      data-bs-backdrop="false" data-bs-keyboard="false">
                     <div class="modal-dialog modal-dialog-centered">

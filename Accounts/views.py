@@ -728,6 +728,8 @@ def doctor_requests(request):
         "doctor": doctor,
         "reservations": reservations,
         "BlacklistForm": BlacklistForm(),
+        "today": today,
+        "two_days_later": two_days_later,  
     })
 
 
@@ -1012,7 +1014,6 @@ def doctor_add_feedback(request, reservation_id):
 
     return render(
         request,
-        'doctor_add_feedback.html',
         'doctor_add_feedback.html',
         {'reservation': reservation, 'form': form}
     )
