@@ -1,0 +1,9 @@
+# Ignore HTML files for GitHub language statistics
+# (exclude them from language detection and mark as generated)
+*.html linguist-detectable=false
+*.html linguist-generated=true
+
+
+# docs/*.html linguist-detectable=false
+# public/**/*.html linguist-detectable=false
+
