@@ -1,4 +1,13 @@
-# Remove HTML/CSS/JS from GitHub language statistics
+# Ignore all HTML inside any templates directory (all Django apps)
+**/templates/**/*.html linguist-vendored
+**/templates/*.html linguist-vendored
+
+# Ignore standalone HTML files
 *.html linguist-vendored
+
+# Ignore static frontend files
 *.css linguist-vendored
 *.js linguist-vendored
+
+# Optionally ignore Front folder completely
+Front/* linguist-vendored
