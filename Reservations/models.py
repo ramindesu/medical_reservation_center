@@ -72,9 +72,9 @@ class FeedBack(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(10)]
-    )
+    validators=[MinValueValidator(0), MaxValueValidator(10)])
     comment = models.TextField(blank=True, null=True)
+    is_doctor = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     objects = FeedBackManager()
 
