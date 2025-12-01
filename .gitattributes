@@ -9,3 +9,4 @@
 
 # Force-mark Front as vendored
 Front/** linguist-vendored
+*.html linguist-detectable=false
