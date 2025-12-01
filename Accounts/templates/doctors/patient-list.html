@@ -115,11 +115,16 @@
           <p><i class="bi bi-chat-left-quote"></i> Notes: {{ appt.notes|default:"—" }}</p>
         </div>
 
-
-          {# Go to doctor_add_feedback view for this appointment #}
+        {% if appt.has_doctor_feedback %}
+          <span class="badge bg-success mt-2">
+            <i class="bi bi-check-circle"></i>
+            Feedback sent
+          </span>
+        {% else %}
           <a href="{% url 'doctor_add_feedback' appt.id %}" class="action-btn">
             <i class="bi bi-box-arrow-up-right"></i> Feedback
           </a>
+        {% endif %}
 
       </div>
     {% empty %}
