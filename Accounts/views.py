@@ -282,42 +282,41 @@ def edit_doctor_profile(request):
     doctor = request.user.doctor
 
     if request.method == 'POST':
-        form = DoctorProfileForm(request.POST)
+        form = DoctorProfileForm(request.POST, request.FILES, instance=doctor)
+
         if form.is_valid():
-            if form.cleaned_data["first_name"]:
-                user.first_name = form.cleaned_data["first_name"]
 
-            if form.cleaned_data["last_name"]:
-                user.last_name = form.cleaned_data["last_name"]
+            form.save()
 
-            if form.cleaned_data["email"]:
-                user.email = form.cleaned_data["email"]
-
-            if form.cleaned_data["phone"]:
-                user.phone = form.cleaned_data["phone"]
-
-            if form.cleaned_data["address"]:
-                user.address = form.cleaned_data["address"]
+            user.first_name = form.cleaned_data.get(
+                "first_name", user.first_name)
+            user.last_name = form.cleaned_data.get("last_name", user.last_name)
+            user.email = form.cleaned_data.get("email", user.email)
+            user.phone = form.cleaned_data.get("phone", user.phone)
+            user.address = form.cleaned_data.get("address", user.address)
             user.save()
 
-            if form.cleaned_data['specialty']:
-                doctor.specialty = form.cleaned_data['specialty']
-            doctor.save()
             messages.success(request, "Profile updated successfully.")
             return redirect('doctor_dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
-        form = DoctorProfileForm(initial={
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "email": user.email,
-            "phone": user.phone,
-            "address": user.address,
-            "specialty": doctor.specialty,
-        })
+        form = DoctorProfileForm(
+            instance=doctor,
+            initial={
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "phone": user.phone,
+                "address": user.address,
+                "specialty": doctor.specialty,
+            }
+        )
 
-    return render(request, 'accounts/edit_doctor_profile.html', {'form': form})
+    return render(request, 'accounts/edit_doctor_profile.html', {
+        'form': form,
+        'doctor': doctor
+    })
 
 
 # @login_required
@@ -740,7 +739,7 @@ def doctor_requests(request):
         "reservations": reservations,
         "BlacklistForm": BlacklistForm(),
         "today": today,
-        "two_days_later": two_days_later,  
+        "two_days_later": two_days_later,
     })
 
 
