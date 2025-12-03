@@ -109,53 +109,47 @@ class PatientProfileForm(forms.ModelForm):
         }
 
 
-class DoctorProfileForm(forms.ModelForm):
+class DoctorProfileForm(forms.Form):
 
     first_name = forms.CharField(required=False,
+                                 label="First Name",
                                  widget=forms.TextInput(attrs={
                                      'class': 'form-control glass-input',
                                      'placeholder': 'Enter new first name...'
                                  }))
 
     last_name = forms.CharField(required=False,
+                                label="Last Name",
                                 widget=forms.TextInput(attrs={
                                     'class': 'form-control glass-input',
                                     'placeholder': 'Enter new last name...'
                                 }))
 
     email = forms.EmailField(required=False,
+                             label="Email",
                              widget=forms.EmailInput(attrs={
                                  'class': 'form-control glass-input',
                                  'placeholder': 'Enter new email...'
                              }))
 
     phone = forms.CharField(required=False,
+                            label="Phone",
                             widget=forms.TextInput(attrs={
                                 'class': 'form-control glass-input',
                                 'placeholder': 'Enter new phone number...'
                             }))
     address = forms.CharField(required=False,
+                              label="Address",
                               widget=forms.TextInput(attrs={
                                   'class': 'form-control glass-input',
                                   'placeholder': 'Enter new address...'
                               }))
     specialty = forms.ModelChoiceField(
         queryset=Specialty.objects.all(),
+        label="Specialty",
         required=False,
         widget=forms.Select(attrs={'class': 'form-select glass-input'})
     )
-
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name',
-                  'email', 'phone', 'address', 'specialty']
-        # widgets = {
-        #     'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-        #     'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-        #     'email': forms.EmailInput(attrs={'class': 'form-control'}),
-        #     'phone': forms.TextInput(attrs={'class': 'form-control'}),
-        #     'address': forms.TextInput(attrs={'class': 'form-control'}),
-        # }
 
 
 class PatientReservationForm(forms.ModelForm):
@@ -355,6 +349,7 @@ class IncreaseCapacityForm(forms.Form):
             'placeholder': 'Enter new capacity...'
         })
     )
+
     def clean_new_capacity(self):
         capacity = self.cleaned_data['new_capacity']
         if capacity < 1 or capacity > 50:
