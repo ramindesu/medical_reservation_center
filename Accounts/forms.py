@@ -109,47 +109,43 @@ class PatientProfileForm(forms.ModelForm):
         }
 
 
-class DoctorProfileForm(forms.Form):
+class DoctorProfileForm(forms.ModelForm):
 
-    first_name = forms.CharField(required=False,
-                                 label="First Name",
-                                 widget=forms.TextInput(attrs={
-                                     'class': 'form-control glass-input',
-                                     'placeholder': 'Enter new first name...'
-                                 }))
+    first_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control glass-input'})
+    )
+    phone = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    address = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
 
-    last_name = forms.CharField(required=False,
-                                label="Last Name",
-                                widget=forms.TextInput(attrs={
-                                    'class': 'form-control glass-input',
-                                    'placeholder': 'Enter new last name...'
-                                }))
-
-    email = forms.EmailField(required=False,
-                             label="Email",
-                             widget=forms.EmailInput(attrs={
-                                 'class': 'form-control glass-input',
-                                 'placeholder': 'Enter new email...'
-                             }))
-
-    phone = forms.CharField(required=False,
-                            label="Phone",
-                            widget=forms.TextInput(attrs={
-                                'class': 'form-control glass-input',
-                                'placeholder': 'Enter new phone number...'
-                            }))
-    address = forms.CharField(required=False,
-                              label="Address",
-                              widget=forms.TextInput(attrs={
-                                  'class': 'form-control glass-input',
-                                  'placeholder': 'Enter new address...'
-                              }))
     specialty = forms.ModelChoiceField(
         queryset=Specialty.objects.all(),
-        label="Specialty",
         required=False,
         widget=forms.Select(attrs={'class': 'form-select glass-input'})
     )
+
+    avatar = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control glass-input'})
+    )
+
+    class Meta:
+        model = Doctor
+        fields = ['specialty', 'avatar']
 
 
 class PatientReservationForm(forms.ModelForm):
