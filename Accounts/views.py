@@ -3,14 +3,19 @@ from itertools import count
 import re
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required 
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.contrib import messages
 from .forms import IncreaseCapacityForm, UserRegistrationForm, DoctorReservationForm, AdminUserCreationForm, AdminUserEditForm, FeedBackForm
+from .models import User, Doctor, Patient 
+from Reservations.models import Reservations 
 from .models import User, Doctor, Patient , CapacityIncreaseRequest
 from Reservations.models import Reservations
 from Wallet.models import Wallet
+from Medical_Archive.models import Specialty , History
+from django.db.models import Q
+from datetime import date
 from Medical_Archive.models import Specialty
 from django.db.models import Q , Sum 
 from datetime import date , datetime
@@ -25,7 +30,6 @@ from django.utils import timezone
 from datetime import timedelta
 from Configs.models import Blacklist, Config
 from django import template
-
 from django.contrib.auth import logout
 
 
@@ -298,8 +302,35 @@ def booking_page(request, doctor_id):
     return render(request, 'booking/booking.html', {'doctor': doctor, 'doctor_id': doctor_id})
 
 
+# ----------------------------------------------------------------------------------------------------
+
 def doctor_details(request, doctor_id):
     doctor = get_object_or_404(Doctor, pk=doctor_id, user__active=True)
+    can_book = (request.user.is_authenticated and getattr(request.user, 'role', None) == User.Role.PATIENT)
+
+    patient_history = None
+    if request.user.is_authenticated and getattr(request.user, 'role', None) == User.Role.PATIENT:
+        patient_history = Reservations.objects.filter( doctor=doctor, patient=request.user.patient,
+            status=Reservations.Status.APPROVED,).order_by('-date')
+        
+    feedback_qs = FeedBack.objects.filter(doctor=doctor,is_doctor=False,).select_related('patient__user').order_by('-created_at')
+
+    feedback_list = list(feedback_qs)
+
+    stats = feedback_qs.aggregate(avg_rating=Avg('rating'),total_feedback=Count('id'),)
+
+    return render( request,'doctors/detail.html',
+        {
+            'doctor': doctor,
+            'can_book': can_book,
+            'patient_history': patient_history,
+            'feedback_list': feedback_list,
+            'avg_rating': stats['avg_rating'],
+            'total_feedback': stats['total_feedback'],
+        }
+    )
+
+
     avg_rating = FeedBack.objects.filter(doctor=doctor).aggregate(
         avg_rating=Avg('rating')
         )['avg_rating']
@@ -451,7 +482,6 @@ def edit_patient_profile(request):
 
     return render(request, 'accounts/edit_patient_profile.html', {'form': form})
 
-
 @login_required
 def full_appointment_history(request):
 
@@ -489,7 +519,6 @@ def full_appointment_history(request):
         "top_doctors": top_doctors,
         "low_doctors": low_doctors,
     })
-
 
 @login_required
 def add_feedback(request, reservation_id):
@@ -567,6 +596,7 @@ def admin_dashboard(request):
         'recent_capacity_requests': recent_capacity_requests,
     }
     return render(request, 'admin/dashboard.html', context)
+
 
 
 @login_required
@@ -911,25 +941,28 @@ def doctor_block_request(request, reservation_id):
 
 
 # -----------RAMIN------------
-
 @login_required
 def patient_list(request):
     if request.user.role != User.Role.DOCTOR:
         return render(request, 'error.html', {'message': 'Access denied'})
-
     doctor = request.user.doctor
-    today = timezone.now().date()
+    today = timezone.localdate()   
 
-    doctor = request.user.doctor
-    now = timezone.now()
-
-    appointments = Reservations.objects.filter(
-        doctor=doctor,
-        status=Reservations.Status.APPROVED,
-        date__lt=today,
+    appointments = list(
+        Reservations.objects.filter(
+            doctor=doctor,
+            status=Reservations.Status.APPROVED,
+            date__lt=today,
+        ).order_by('-date')
     )
 
-    return render(request, 'doctors/patient-list.html', {'appointments': appointments})
+    for appt in appointments:
+        appt.has_doctor_feedback = FeedBack.objects.filter(
+            reservation=appt,
+            doctor=doctor,
+            is_doctor=True,).exists()
+         
+    return render( request,'doctors/patient-list.html',{'appointments': appointments})
 
 # ----------------------------
 
@@ -1041,7 +1074,6 @@ def create_followup_appointment(request, appointment_id):
 
 # -------------------------------------------
 
-
 @login_required
 def doctor_add_feedback(request, reservation_id):
     reservation = get_object_or_404(Reservations, id=reservation_id)
@@ -1058,6 +1090,7 @@ def doctor_add_feedback(request, reservation_id):
         return render(request, 'error.html', {
             'message': 'Feedback can only be added for approved reservations.'
         })
+
     if reservation.date > timezone.now().date():
         return render(request, 'error.html', {
             'message': 'You can only add feedback after the visit date has passed.'
@@ -1070,7 +1103,27 @@ def doctor_add_feedback(request, reservation_id):
             feedback.reservation = reservation
             feedback.doctor = reservation.doctor
             feedback.patient = reservation.patient
+            feedback.is_doctor = True
             feedback.save()
+
+
+            history_obj, created = History.objects.get_or_create(
+                patient=reservation.patient,
+                defaults={'history': ""} )
+
+            line = (
+                f"{timezone.now().strftime('%Y-%m-%d %H:%M')} - "
+                f"Dr. {reservation.doctor.user.get_full_name()} | "
+                f"Rating: {feedback.rating}/10\n"
+                f"Feedback: {feedback.comment}\n"
+                "------------------------------\n"
+            )
+
+            if history_obj.history:
+                history_obj.history += "\n" + line
+            else:
+                history_obj.history = line
+            history_obj.save()
             messages.success(request, "Feedback sent to patient successfully.")
             return redirect('doctor_dashboard')
     else:

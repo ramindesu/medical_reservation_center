@@ -20,11 +20,11 @@ class Reservations(models.Model):
     service = models.CharField(max_length=100)
 
     class Status(models.TextChoices):
-        WAITING = 'waiting', 'Waiting'
-        APPROVED = 'approved', 'Approved'
-        REJECTED = 'rejected', 'Rejected'
-        CANCELED = 'canceled', 'Canceled'
-        BLOCKED = 'blocked', 'Blocked'
+        WAITING = "waiting", "Waiting"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        CANCELED = "canceled", "Canceled"
+        BLOCKED = "blocked", "Blocked"
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)
@@ -49,8 +49,8 @@ class Reservations(models.Model):
 
 
     class Meta:
-        verbose_name = 'Reservation'
-        verbose_name_plural = 'Reservations'
+        verbose_name = "Reservation"
+        verbose_name_plural = "Reservations"
 
 
 class FeedBackManager(models.Manager):
@@ -72,9 +72,9 @@ class FeedBack(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(10)]
-    )
+    validators=[MinValueValidator(0), MaxValueValidator(10)])
     comment = models.TextField(blank=True, null=True)
+    is_doctor = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     objects = FeedBackManager()
 
