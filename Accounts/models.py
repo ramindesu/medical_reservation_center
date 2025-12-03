@@ -144,29 +144,30 @@ class Patient(models.Model):
 #         verbose_name_plural = "Admins"
 
 
-# class CapacityIncreaseRequest(models.Model):
-#     class Status(models.TextChoices):
-#         PENDING = 'pending', 'Pending'
-#         APPROVED = 'approved', 'Approved'
-#         REJECTED = 'rejected', 'Rejected'
+class CapacityIncreaseRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
     
-#     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-#     current_capacity = models.PositiveIntegerField()
-#     requested_capacity = models.PositiveIntegerField()
-#     reason = models.TextField(blank=True, null=True)
-#     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    current_capacity = models.PositiveIntegerField()
+    requested_capacity = models.PositiveIntegerField()
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+ 
     
-#     def save(self, *args, **kwargs):
-#         if not self.id:
-#             self.current_capacity = self.doctor.monthly_reservation_capacity
-#         super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.current_capacity = self.doctor.monthly_reservation_capacity
+        super().save(*args, **kwargs)
 
-#     def __str__(self):
-#         return f"Capacity request - Dr. {self.doctor.user.get_full_name()}"
+    def __str__(self):
+        return f"Capacity request - Dr. {self.doctor.user.get_full_name()}"
     
-#     class Meta:
-#         verbose_name = 'Capacity Increase Request'
-#         verbose_name_plural = 'Capacity Increase Requests'
-#         ordering = ['-created_at']
+    class Meta:
+        verbose_name = 'Capacity Increase Request'
+        verbose_name_plural = 'Capacity Increase Requests'
+        ordering = ['-created_at']

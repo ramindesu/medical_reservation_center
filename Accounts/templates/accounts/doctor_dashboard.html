@@ -14,6 +14,7 @@
             padding: 40px 0;
             background: linear-gradient(135deg, #3d7cd0, #57d8c9);
             font-family: "Inter", sans-serif;
+            display: block;
         }
 
         .dashboard-container {
@@ -37,19 +38,15 @@
             box-shadow: 0 5px 18px rgba(0,0,0,0.15);
         }
 
-        .profile-img {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(255,255,255,0.9);
-            margin-bottom: 10px;
+        h2, h3 {
+            color: #031b46ff;
+            text-shadow: 0px 1px 4px rgba(0,0,0,0.35);
+            font-weight: 700;
         }
 
-        .profile-icon {
-            font-size: 95px;
-            color: #ffffff;
-            filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.4));
+        p, span, small {
+            color: #0d0013ff;
+            text-shadow: 0 0 6px rgba(0,0,0,0.3);
         }
 
         .btn-glass {
@@ -60,18 +57,124 @@
             padding: 10px 18px;
             transition: .25s;
             margin: 5px 0;
+            display: inline-block;
             text-decoration: none;
+            border: none;
         }
 
         .btn-glass:hover {
             background: rgba(255,255,255,0.9);
             transform: translateY(-3px);
+            color: #004d6f;
         }
 
-        .badge-capacity {
-            font-size: 0.9rem;
+        .btn-warning-glass {
+            background: rgba(255, 193, 7, 0.7);
+            color: #000;
+        }
+
+        .btn-warning-glass:hover {
+            background: rgba(255, 193, 7, 0.9);
+            color: #000;
+        }
+
+        .btn-success-glass {
+            background: rgba(40, 167, 69, 0.7);
+            color: white;
+        }
+
+        .btn-success-glass:hover {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+        }
+
+        .profile-icon {
+            font-size: 75px;
+            color: #ffffff;
+            filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.4));
+        }
+
+        .capacity-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+        }
+
+        .status-full {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid #dc3545;
+        }
+
+        .status-available {
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid #28a745;
+        }
+
+        .status-increased {
+            background: rgba(23, 162, 184, 0.1);
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-container {
+            max-width: 900px;
+            margin: 0 auto 20px auto;
+        }
+
+        .badge-updated {
+            background: linear-gradient(45deg, #17a2b8, #20c997);
+            color: white;
+            font-size: 0.8rem;
             padding: 4px 10px;
-            border-radius: 999px;
+            border-radius: 20px;
+        }
+        
+        .approved-request-box {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.1), rgba(23, 162, 184, 0.1));
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .capacity-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .month-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 15px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .capacity-badge {
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin: 2px;
+        }
+        
+        .increase-amount {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .formula-box {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .capacity-breakdown {
+            font-size: 0.85rem;
+            color: #555;
         }
     </style>
 </head>
@@ -79,9 +182,9 @@
 <body>
 
 {% if messages %}
-    <div class="container mt-3">
+    <div class="alert-container">
         {% for message in messages %}
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -91,67 +194,200 @@
 
 <div class="dashboard-container">
 
-
     <div class="glass-box text-center">
-
-        {% if doctor.avatar %}
-            <img src="{{ doctor.avatar.url }}" class="profile-img" alt="Doctor Avatar">
-        {% else %}
-            <i class="bi bi-person-circle profile-icon"></i>
-        {% endif %}
+        <i class="bi bi-person-circle profile-icon"></i>
 
         <h2 class="mt-3">Dr. {{ doctor.user.get_full_name }}</h2>
-        <p>{{ doctor.user.email }}</p>
+        <p class="mb-1">{{ doctor.user.email }}</p>
 
-        <p class="mb-1">
+        <p>
             <i class="bi bi-heart-pulse"></i>
             Specialty: <strong>{{ doctor.specialty.title }}</strong>
         </p>
 
-        <p class="mb-1">
-            <i class="bi bi-calendar-check"></i>
-            Monthly Capacity: 
-            <strong id="capacity-number">{{ doctor.monthly_reservation_capacity }}</strong>
-            <span id="capacity-badge" class="badge badge-capacity ms-1"></span>
-        </p>
 
-        {% if doctor.monthly_reservation_capacity < 49 %}
-            <a href="{% url 'increase_capacity' %}" class="btn btn-glass">
-                <i class="bi bi-plus-circle"></i> Request Capacity Change
-            </a>
-        {% endif %}
+     
+
+
+        <div class="capacity-info {% if is_capacity_full %}status-full{% elif has_approved_request %}status-increased{% else %}status-available{% endif %}">
+            <h5 class="mb-3">
+                <i class="bi bi-graph-up"></i> Capacity Status
+                {% if has_approved_request %}
+                    <span class="badge-updated ms-2">
+                        <i class="bi bi-arrow-up-circle"></i> Increased for current month
+                    </span>
+                {% endif %}
+            </h5>
+            
+                    
+            <div class="row text-center">
+
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Monthly Capacity</strong></p>
+                    <h4 class="text-primary">
+                        {{ total_capacity }}
+
+                    </h4>
+                </div>
+                
+
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Approved This Month</strong></p>
+                    <h4 class="{% if is_capacity_full %}text-danger{% else %}text-success{% endif %}">
+                        {{ current_reservations }}
+
+                    </h4>
+                </div>
+                
+
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Available</strong></p>
+                    <h4 class="{% if available_capacity <= 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ available_capacity }}
+
+                    </h4>
+                </div>
+            </div>
+
+            {% if has_approved_request %}
+                <div class="approved-request-box">
+                    <p class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <strong>Temporary Capacity Increase Active!</strong>
+                    </p>
+                    <div class="row text-center mb-2">
+                        <div class="col-4">
+                            <span class="badge bg-secondary capacity-badge">
+                                Base<br>{{ base_capacity }}
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <span class="badge bg-success capacity-badge">
+                                +{{ increase_amount }}<br>Increase
+                            </span>
+                        </div>
+                        <div class="col-4">
+                            <span class="badge bg-primary capacity-badge">
+                                {{ total_capacity }}<br>Total
+                            </span>
+                        </div>
+                    </div>
+                  
+                </div>
+            {% endif %}
+
+
+            {% if not has_approved_request %}
+                {% if is_capacity_full %}
+                    <div class="mt-3">
+                        <p class="text-danger mb-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            You have reached your monthly capacity limit!
+                            <br>
+                            <small class="text-muted">
+                                {{ current_reservations }} approved / {{ total_capacity }} capacity
+                            </small>
+                        </p>
+                        <a href="{% url 'increase_capacity' %}" class="btn btn-warning-glass">
+                            <i class="bi bi-plus-circle"></i> Request Capacity Increase 
+                        </a>
+                    </div>
+                {% elif is_low_capacity %}
+                    <div class="mt-3">
+                        <p class="text-warning mb-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Low capacity! Only {{ available_capacity }} slots remaining.
+                            <br>
+                            <small class="text-muted">
+                                {{ current_reservations }} approved / {{ total_capacity }} capacity
+                            </small>
+                        </p>
+                        <a href="{% url 'increase_capacity' %}" class="btn btn-warning-glass">
+                            <i class="bi bi-plus-circle"></i> Request Capacity Increase 
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="mt-3">
+                        <p class="text-success mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            You have {{ available_capacity }} available slots
+                            <br>
+                            <small class="text-muted">
+                                {{ current_reservations }} approved / {{ total_capacity }} capacity
+                            </small>
+                        </p>
+                        <a href="{% url 'increase_capacity' %}" class="btn btn-success-glass mt-2">
+                            <i class="bi bi-plus-circle"></i> Request Capacity Increase 
+                        </a>
+                    </div>
+                {% endif %}
+            {% else %}
+
+                <div class="mt-3">
+                    {% if available_capacity > 0 %}
+                        <p class="text-success mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            You have {{ available_capacity }} available slots with increased capacity
+                            <br>
+                            <small class="text-muted">
+                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ base_capacity }} base + {{ increase_amount }} increase)
+                            </small>
+                        </p>
+                    {% else %}
+                        <p class="text-danger mb-0">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            No available slots despite increased capacity
+                            <br>
+                            <small class="text-muted">
+                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ base_capacity }} base + {{ increase_amount }} increase)
+                            </small>
+                        </p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
 
         <div class="mt-3">
-            <a href="{% url 'edit_doctor_profile' %}" class="btn btn-glass">
+            <a href="{% url 'edit_doctor_profile' %}" class="btn btn-glass me-2">
                 <i class="bi bi-pencil-square"></i> Edit Profile
             </a>
 
-            <a href="{% url 'change_password' %}" class="btn btn-glass">
+            <a href="{% url 'change_password' %}" class="btn btn-glass me-2">
                 <i class="bi bi-key"></i> Change Password
             </a>
 
-            <a href="{% url 'home' %}" class="btn btn-glass">
-                <i class="bi bi-house-door"></i> Home
+            <a href="{% url 'home_redirect' %}" class="btn btn-glass me-2">
+                <i class="bi bi-house-door"></i> Back to Home
             </a>
 
-            <a href="{% url 'logout' %}" class="btn btn-glass">
-                <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
+            <form method="post" action="{% url 'logout' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-glass">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
         </div>
     </div>
 
 
     <div class="glass-box">
-        <h3><i class="bi bi-list-check"></i> My Appointments</h3>
+        <h3>
+            <i class="bi bi-list-check"></i>
+            My Appointments
+        </h3>
         <p>You have {{ reservations.count }} approved appointments.</p>
 
         <a href="{% url 'doctor_appointments' %}" class="btn btn-glass">
-            <i class="bi bi-calendar-week"></i> View Appointment List
+            <i class="bi bi-calendar-week"></i>
+            View All Appointments
         </a>
     </div>
 
+
     <div class="glass-box">
         <h3><i class="bi bi-people"></i> Patients List</h3>
+        <p>View your patient history and information.</p>
 
         <a href="{% url 'doctor_patient_list' %}" class="btn btn-glass">
             <i class="bi bi-eye"></i> View Patients
@@ -160,8 +396,8 @@
 
 
     <div class="glass-box">
-        <h3><i class="bi bi-inbox"></i> Requests</h3>
-        <p>Manage incoming reservation requests.</p>
+        <h3><i class="bi bi-inbox"></i> Pending Requests</h3>
+        <p>View and manage incoming reservation requests.</p>
 
         <a href="{% url 'doctor_requests' %}" class="btn btn-glass">
             <i class="bi bi-journal-text"></i> View Requests
@@ -170,32 +406,59 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    let capacity = parseInt("{{ doctor.monthly_reservation_capacity }}");
-    let numberEl = document.getElementById("capacity-number");
-    let badgeEl = document.getElementById("capacity-badge");
 
-    if (!isNaN(capacity)) {
-        if (capacity <= 48) {
-            numberEl.style.color = "red";
-            badgeEl.textContent = "Almost Full";
-            badgeEl.classList.add("bg-danger", "text-white");
-        }
-        else if (capacity <= 50) {
-            numberEl.style.color = "orange";
-            badgeEl.textContent = "Normal";
-            badgeEl.classList.add("bg-warning", "text-dark");
-        }
-        else {
-            numberEl.style.color = "green";
-            badgeEl.textContent = "Good";
-            badgeEl.classList.add("bg-success", "text-white");
-        }
+
+    const buttons = document.querySelectorAll('.btn-glass, .btn-warning-glass, .btn-success-glass');
+    buttons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+            this.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+        });
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 5px 18px rgba(0,0,0,0.15)';
+        });
+    });
+
+
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert.parentElement) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }
+        }, 5000);
+    });
+    
+
+    const capacityBox = document.querySelector('.capacity-info');
+    if (capacityBox) {
+        capacityBox.style.opacity = '0';
+        capacityBox.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            capacityBox.style.transition = 'all 0.5s ease';
+            capacityBox.style.opacity = '1';
+            capacityBox.style.transform = 'translateY(0)';
+        }, 300);
     }
+    
+  
+    console.log('=== Capacity Breakdown for {{ current_month }} ===');
+    console.log('Base Capacity: {{ base_capacity }}');
+    console.log('Increase Amount: {{ increase_amount }}');
+    console.log('Total Capacity: {{ total_capacity }}');
+    console.log('Approved This Month: {{ current_reservations }}');
+    console.log('Available: {{ available_capacity }}');
+    console.log('Has Approved Request: {{ has_approved_request|yesno:"Yes,No" }}');
+
+    console.log('===============================');
 });
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

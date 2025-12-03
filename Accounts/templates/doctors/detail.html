@@ -100,9 +100,15 @@
       <p class="info-line"><i class="bi bi-telephone"></i> {{ doctor.user.phone }}</p>
     {% endif %}
 
+    {% if avg_rating %}
     <span class="badge-glass">
-      <i class="bi bi-star-fill"></i> {{ doctor.user.rate|default:"0" }}/10
+      <i class="bi bi-star-fill"></i> {{ avg_rating|floatformat:1 }}/10
     </span>
+    {% else %}
+    <span class="badge-glass">
+      <i class="bi bi-star"></i> No rating yet
+    </span>
+    {% endif %}
 
     {% if patient_history %}
       <h4 class="mt-4 text-light">Previous Appointments</h4>

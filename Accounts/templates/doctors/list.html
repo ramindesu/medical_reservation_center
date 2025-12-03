@@ -163,11 +163,15 @@
                     <i class="bi bi-telephone"></i> {{ doctor.user.phone }}
                 </p>
                 {% endif %}
-
+                {% if doctor.avg_rating %}
                 <span class="badge bg-warning text-dark mb-3">
-                    <i class="bi bi-star-fill"></i> {{ doctor.user.rate }}/10
+                    <i class="bi bi-star-fill"></i> {{ doctor.avg_rating|floatformat:1 }}/10
                 </span>
-
+                {% else %}
+                <span class="badge bg-secondary mb-3">
+                <i class="bi bi-star"></i> No rating
+                </span>
+                {% endif %}
                 <br>
 
                 <a href="{% url 'detail_page' doctor.user_id %}" class="btn-glass">
