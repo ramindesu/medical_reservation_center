@@ -344,7 +344,7 @@
                             You have {{ available_capacity }} available slots with increased capacity
                             <br>
                             <small class="text-muted">
-                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ base_capacity }} base + {{ increase_amount }} increase)
+                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ increase_amount }} base + {{ base_capacity }} increase)
                             </small>
                         </p>
                     {% else %}
@@ -353,7 +353,7 @@
                             No available slots despite increased capacity
                             <br>
                             <small class="text-muted">
-                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ base_capacity }} base + {{ increase_amount }} increase)
+                                {{ current_reservations }} approved / {{ total_capacity }} total ({{ increase_amount }} base + {{ base_capacity }} increase)
                             </small>
                         </p>
                     {% endif %}
