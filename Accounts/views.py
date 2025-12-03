@@ -229,7 +229,7 @@ def doctor_dashboard(request):
    
     
     context = {
-       'doctor': doctor_instance,
+        'doctor': doctor_instance,
         'current_reservations': current_reservations,
         'available_capacity': available_capacity,
         'total_capacity': total_capacity,
@@ -239,7 +239,7 @@ def doctor_dashboard(request):
         'current_month': now.strftime("%B %Y"),
         'is_capacity_full': is_capacity_full,
         'is_low_capacity': is_low_capacity,
-
+        'reservations' :reservations,
     }
     
     return render(request, 'accounts/doctor_dashboard.html', context)
@@ -842,7 +842,7 @@ def doctor_accept(request, reservation_id):
     reservation = get_object_or_404(Reservations, id=reservation_id)
     doctor = request.user.doctor
 
-    doctor.monthly_reservation_capacity -= 1
+    # doctor.monthly_reservation_capacity -= 1
     doctor.save()
 
     reservation.status = Reservations.Status.APPROVED
