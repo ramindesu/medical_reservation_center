@@ -256,7 +256,7 @@
 
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Available</strong></p>
-                    <h4 class="{% if available_capacity <= 0 %}text-danger{% else %}text-success{% endif %}">
+                    <h4 class="{% if available_capacity <= 2 %}text-danger{% else %}text-success{% endif %}">
                         {{ available_capacity }}
 
                     </h4>
@@ -272,12 +272,12 @@
                     <div class="row text-center mb-2">
                         <div class="col-4">
                             <span class="badge bg-secondary capacity-badge">
-                                Base<br>{{ increase_amount }}
+                                Base<br>{{ base_capacity }}
                             </span>
                         </div>
                         <div class="col-4">
                             <span class="badge bg-success capacity-badge">
-                                +{{ base_capacity }}<br>Increase
+                                +{{ increase_amount }}<br>Increase
                             </span>
                         </div>
                         <div class="col-4">
@@ -338,7 +338,7 @@
             {% else %}
 
                 <div class="mt-3">
-                    {% if available_capacity > 0 %}
+                    {% if available_capacity > 2 %}
                         <p class="text-success mb-0">
                             <i class="bi bi-check-circle"></i>
                             You have {{ available_capacity }} available slots with increased capacity
@@ -350,11 +350,14 @@
                     {% else %}
                         <p class="text-danger mb-0">
                             <i class="bi bi-exclamation-triangle"></i>
-                            No available slots despite increased capacity
+                            2 or less available slots despite increased capacity-you can request increase capacity again
                             <br>
                             <small class="text-muted">
                                 {{ current_reservations }} approved / {{ total_capacity }} total ({{ increase_amount }} base + {{ base_capacity }} increase)
                             </small>
+                            <a href="{% url 'increase_capacity' %}" class="btn btn-success-glass mt-2">
+                            <i class="bi bi-plus-circle"></i> Request Capacity Increase 
+                            </a>
                         </p>
                     {% endif %}
                 </div>

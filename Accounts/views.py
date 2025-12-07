@@ -203,14 +203,14 @@ def doctor_dashboard(request):
         
         aggregation = approved_requests.aggregate(
             total_requested=Sum('requested_capacity'),
-            total_current=Sum('current_capacity'),
+            # total_current=Sum('current_capacity'),
 
         )
         
         total_requested = aggregation['total_requested'] or 0
-        total_current = aggregation['total_current'] or 0
+        # total_current = aggregation['total_current'] or 0
 
-        increase_amount = total_requested - total_current
+        increase_amount = total_requested 
 
     total_capacity = base_capacity + increase_amount
 
@@ -236,7 +236,7 @@ def doctor_dashboard(request):
         'base_capacity': base_capacity,
         'increase_amount': increase_amount,
         'has_approved_request': has_active_approved_request,
-        'current_month': now.strftime("%B %Y"),
+        # 'current_month': now.strftime("%B %Y"),
         'is_capacity_full': is_capacity_full,
         'is_low_capacity': is_low_capacity,
         'reservations' :reservations,
@@ -569,7 +569,7 @@ def admin_required(view_func):
     return wrapper
 
 
-@login_required
+# @login_required
 @admin_required
 def admin_dashboard(request):
     total_patients = Patient.objects.count()
@@ -599,7 +599,7 @@ def admin_dashboard(request):
 
 
 
-@login_required
+# @login_required
 @admin_required
 def admin_manage_users(request, user_type):
     if user_type == 'patients':
@@ -650,7 +650,7 @@ def admin_manage_users(request, user_type):
     return render(request, template, context)
 
 
-@login_required
+# @login_required
 @admin_required
 def admin_add_user(request):
     if request.method == 'POST':
@@ -668,7 +668,7 @@ def admin_add_user(request):
     return render(request, 'admin/add_user.html', {'form': form})
 
 
-@login_required
+# @login_required
 @admin_required
 def admin_edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -694,7 +694,7 @@ def admin_edit_user(request, user_id):
     return render(request, 'admin/edit_user.html', context)
 
 
-@login_required
+# @login_required
 @admin_required
 def admin_manage_appointments(request):
     appointments = Reservations.objects.all().order_by('-created_at')
@@ -1327,11 +1327,11 @@ def increase_capacity(request):
         date__month=current_month.month
     ).count()
     
-    if current_reservations < doctor.monthly_reservation_capacity:
+    if doctor.monthly_reservation_capacity - current_reservations >= 2:
         messages.warning(
             request, 
             f"You still have {doctor.monthly_reservation_capacity - current_reservations} available slots. "
-            f"You can request capacity increase when you reach your current limit."
+            f"You can request capacity increase when you reach 2 available reservation."
         )
         return redirect('doctor_dashboard')
 
@@ -1363,7 +1363,7 @@ def increase_capacity(request):
 
 # ---------------------
 from django.db.models import F
-@login_required
+# @login_required
 @admin_required
 def admin_manage_capacity_requests(request):
     status_filter = request.GET.get('status', 'all')
@@ -1379,7 +1379,7 @@ def admin_manage_capacity_requests(request):
     
 
     requests = requests.annotate(
-        increase_amount=F('requested_capacity') - F('current_capacity')
+        increase_amount=F('requested_capacity')
     ).order_by('-created_at')
 
     stats = {
@@ -1396,7 +1396,7 @@ def admin_manage_capacity_requests(request):
     }
     return render(request, 'admin/manage_capacity_requests.html', context)
 
-@login_required
+# @login_required
 @admin_required
 def approve_capacity_request(request, request_id):
 
@@ -1404,8 +1404,8 @@ def approve_capacity_request(request, request_id):
     
     if request.method == "POST":
 
-        capacity_request.doctor.monthly_reservation_capacity = capacity_request.requested_capacity
-        capacity_request.doctor.save()
+        # capacity_request.doctor.monthly_reservation_capacity = capacity_request.requested_capacity
+        # capacity_request.doctor.save()
         
 
         capacity_request.status = CapacityIncreaseRequest.Status.APPROVED
@@ -1419,7 +1419,7 @@ def approve_capacity_request(request, request_id):
     
     return redirect('admin_manage_capacity_requests')
 
-@login_required
+# @login_required
 @admin_required
 def reject_capacity_request(request, request_id):
 
