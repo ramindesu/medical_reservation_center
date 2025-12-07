@@ -198,7 +198,22 @@ class AdminUserCreationForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'role': forms.Select(attrs={'class': 'form-select'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        role_field = self.fields['role']
 
+        available_choices = []
+
+        for choice in role_field.choices:
+            if choice[0] != '':  
+                if hasattr(User, 'Role'):  
+                    if choice[0] in [User.Role.DOCTOR, User.Role.PATIENT]:
+                        available_choices.append(choice)
+                else:
+                    if choice[0] in ['DOCTOR', 'PATIENT']:
+                        available_choices.append(choice)
+        role_field.choices = [('', '---------')] + available_choices
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
