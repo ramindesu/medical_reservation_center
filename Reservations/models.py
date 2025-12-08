@@ -1,32 +1,70 @@
 from django.db import models
 from Accounts.models import Doctor, Patient
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Avg, Count
+from datetime import time , datetime
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-
+def validate_not_past(value):
+    today = timezone.localdate()
+    if value < today:
+        raise ValidationError("You cannot create a reservation for a past date.")
 class Reservations(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.CharField(default="09:00")
+    date = models.DateField(validators=[validate_not_past])
+    time = models.TimeField(default=time(9,0))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     service = models.CharField(max_length=100)
 
     class Status(models.TextChoices):
-        WAITING = 'waiting', 'Waiting'
-        APPROVED = 'approved', 'Approved'
-        REJECTED = 'rejected', 'Rejected'
-        CANCELED = 'canceled', 'Canceled'
+        WAITING = "waiting", "Waiting"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+        CANCELED = "canceled", "Canceled"
+        BLOCKED = "blocked", "Blocked"
 
     status = models.CharField(
         max_length=15, choices=Status.choices, default=Status.WAITING)
+    
+
+    
+    @property
+    def display_status(self):
+       
+        from Configs.models import Blacklist
+        if Blacklist.objects.filter(doctor=self.doctor, patient=self.patient, active=True).exists():
+            return Reservations.Status.BLOCKED
+        return self.status
 
     def __str__(self):
         return f"Reservation: {self.patient.user.first_name} → {self.doctor.user.first_name} ({self.status})"
+    
+    @property
+    def is_in_progress(self):
+        system_date = datetime.now().date()
+        return self.date == system_date
+
 
     class Meta:
-        verbose_name = 'Reservation'
-        verbose_name_plural = 'Reservations'
+        verbose_name = "Reservation"
+        verbose_name_plural = "Reservations"
+
+
+class FeedBackManager(models.Manager):
+    def doctor_rating_average(self):
+        return self.values("doctor_id", "doctor__user__first_name", "doctor__user__last_name", "doctor__specialty__title").annotate(
+            rating_average=Avg("rating"),
+            total_feedback_count=Count("id")
+        ).order_by("-rating_average")
+
+    def top_doctors(self, top_numbers=3):
+        return self.doctor_rating_average()[:top_numbers]
+
+    def low_doctors(self, low_numbers=3):
+        return self.doctor_rating_average().order_by("rating_average")[:low_numbers]
 
 
 class FeedBack(models.Model):
@@ -34,10 +72,11 @@ class FeedBack(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(10)]
-    )
+    validators=[MinValueValidator(0), MaxValueValidator(10)])
     comment = models.TextField(blank=True, null=True)
+    is_doctor = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    objects = FeedBackManager()
 
     def __str__(self):
         return f"Feedback ({self.rating}/10) from {self.patient.user.first_name}"

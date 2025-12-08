@@ -1,13 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
-
-from .models import Specialty
-from Accounts.models import Doctor
+from .models import Specialty , History
+from Accounts.models import Doctor , User
 from Accounts.forms import DoctorReservationForm
 from Reservations.models import Reservations
 from django.contrib import messages
-
-from .forms import ReservationForm
-from Accounts import Doctor
+from django.contrib.auth.decorators import login_required
 
 def specialties(request):
     specialties = Specialty.objects.all()
@@ -56,4 +53,25 @@ def doctors_by_specialty(request, specialty_id):
         request,
         "doctors_by_specialty.html",
         {"specialty": specialty, "doctors": doctors, "form": form},
+    )
+
+
+
+@login_required
+def patient_history(request):
+    if request.user.role != User.Role.PATIENT:
+        return render(request, 'error.html', {'message': 'Access denied'})
+
+    patient = request.user.patient
+
+ 
+    history_obj = History.objects.filter(patient=patient).first()
+
+    return render(
+        request,
+        'accounts/patient_history.html',
+        {
+            'patient': patient,
+            'history': history_obj,  
+        }
     )

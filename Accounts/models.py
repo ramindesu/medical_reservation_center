@@ -1,15 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator , MaxLengthValidator
 from Wallet.models import Wallet
 from django.utils import timezone
+from django.db.models import Avg
 
 
 class User(AbstractUser):
-    address = models.TextField(null=True , blank=True , default='')
-    phone = models.CharField(max_length=15)
+    address = models.TextField(null=True, blank=True, default="")
+    phone = models.CharField(
+        max_length=20,
+        validators=[
+            RegexValidator(
+                r"^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$",
+                message="phone is not valid",
+            ),
+            MaxLengthValidator(20),
+        ],
+    )
     active = models.BooleanField(default=True)
-    rate = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)], default=0)
+    rate = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(10)], default=0
+    )
 
     class Role(models.TextChoices):
         ADMIN = "admin", "Admin"
@@ -18,23 +30,41 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=10, choices=Role.choices)
 
+    @property
+    def average_rate(self):
+
+        if self.is_doctor():
+            try:
+                doctor = self.doctor 
+
+                from Reservations.models import Feedback
+                result = Feedback.objects.filter(doctor=doctor).aggregate(avg_rate=Avg('rate'))
+                return result['avg_rate'] or 0
+            except Doctor.DoesNotExist:
+                return 0
+        else:
+
+            result = User.objects.aggregate(avg_rate=Avg('rate'))
+            return result['avg_rate'] or 0
+
+
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.role})"
-    
+
     def is_admin(self):
         return self.role == self.Role.ADMIN
-    
+
     def is_doctor(self):
         return self.role == self.Role.DOCTOR
-    
+
     def is_patient(self):
         return self.role == self.Role.PATIENT
-    
+
     def save(self, *args, **kwargs):
         if self.is_superuser:
             self.role = User.Role.ADMIN
         super().save(*args, **kwargs)
-
 
     class Meta:
         verbose_name = "User"
@@ -45,10 +75,12 @@ class User(AbstractUser):
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     medical_code = models.CharField(max_length=30, unique=True)
-    specialty = models.ForeignKey('Medical_Archive.Specialty', on_delete=models.CASCADE)
+    specialty = models.ForeignKey("Medical_Archive.Specialty", on_delete=models.CASCADE)
     monthly_reservation_capacity = models.PositiveIntegerField(default=50)
-    wallet = models.OneToOneField(Wallet , on_delete=models.CASCADE, blank=True, null=True)
-    avatar = models.ImageField(upload_to='Avatar/', blank=True, null=True)
+    wallet = models.OneToOneField(
+        Wallet, on_delete=models.CASCADE, blank=True, null=True
+    )
+    avatar = models.ImageField(upload_to="Avatar/", blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.user.role = User.Role.DOCTOR
@@ -66,28 +98,26 @@ class Doctor(models.Model):
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    wallet = models.OneToOneField(Wallet,on_delete=models.CASCADE, blank=True, null=True)
+    wallet = models.OneToOneField(
+        Wallet, on_delete=models.CASCADE, blank=True, null=True
+    )
     monthly_appointment_limit = models.IntegerField(default=5)
-    
-    
+
     def get_approved_appointments_count(self, month=None, year=None):
         if not month:
             month = timezone.now().month
         if not year:
             year = timezone.now().year
-        
+
         from Reservations.models import Reservations
+
         return Reservations.objects.filter(
-            patient=self,
-            status='approved',
-            date__month=month,
-            date__year=year
+            patient=self, status="approved", date__month=month, date__year=year
         ).count()
-        
+
     def can_make_appointment(self):
         return self.get_approved_appointments_count() < self.monthly_appointment_limit
 
-    
     def save(self, *args, **kwargs):
         self.user.role = User.Role.PATIENT
         self.user.save()
@@ -112,3 +142,32 @@ class Patient(models.Model):
 #     class Meta:
 #         verbose_name = "Admin"
 #         verbose_name_plural = "Admins"
+
+
+class CapacityIncreaseRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
+    
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    current_capacity = models.PositiveIntegerField()
+    requested_capacity = models.PositiveIntegerField()
+    reason = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+ 
+    
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.current_capacity = self.doctor.monthly_reservation_capacity
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Capacity request - Dr. {self.doctor.user.get_full_name()}"
+    
+    class Meta:
+        verbose_name = 'Capacity Increase Request'
+        verbose_name_plural = 'Capacity Increase Requests'
+        ordering = ['-created_at']

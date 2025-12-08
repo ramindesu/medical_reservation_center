@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <title>Medical Specialties | MedReserve</title>
 
-    <!-- Bootstrap -->
+   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Icons -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
@@ -22,81 +22,105 @@
             align-items: flex-start;
         }
 
-        .container {
+        .glass-wrapper {
             margin-top: 80px;
             width: 90%;
-            max-width: 700px;
-            background: rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
-            padding: 40px;
-            backdrop-filter: blur(14px);
-            box-shadow: 0px 25px 45px rgba(0,0,0,0.2);
-            color: white;
-            text-align: center;
+            max-width: 750px;
+            background: rgba(255, 255, 255, 0.22);
+            border-radius: 24px;
+            padding: 45px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0px 25px 45px rgba(0,0,0,0.28);
             animation: fadeIn 0.6s ease-in-out;
+            color: #fff;
+            text-align: center;
         }
 
         h1 {
-            font-weight: 700;
-            margin-bottom: 20px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0px 2px 6px rgba(0,0,0,0.3);
         }
 
-        a.specialty-card {
-            display: block;
+        p.subtitle {
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        .specialty-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: rgba(255, 255, 255, 0.26);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-            transition: 0.25s ease-in-out;
-            color: #fff;
-            font-weight: 500;
+            padding: 16px 20px;
+            border-radius: 14px;
+            margin: 12px 0;
             text-decoration: none;
+            color: white;
+            font-weight: 600;
+            transition: 0.25s;
         }
 
-        a.specialty-card:hover {
-            background: rgba(255, 255, 255, 0.4);
+        .specialty-card:hover {
+            background: rgba(255, 255, 255, 0.42);
+            transform: translateY(-4px);
+        }
+
+        .specialty-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 20px;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.25s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.45);
             transform: translateY(-3px);
         }
 
-        a.back-btn {
-            display: inline-block;
-            margin-top: 25px;
-            color: #fff;
-            font-weight: 500;
-            text-decoration: none;
-            background: rgba(255, 255, 255, 0.25);
-            padding: 10px 20px;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
-
-        a.back-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: translateY(-2px);
-        }
-
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1><i class="bi bi-clipboard2-pulse"></i> Medical Specialties</h1>
-        <p class="mb-4">Choose a medical specialty to find available doctors.</p>
 
-        {% if specialties %}
-            {% for specialty in specialties %}
-                <a href="{% url 'doctors_by_specialty' specialty.id %}" class="specialty-card">
-                    <i class="bi bi-heart-pulse-fill"></i> {{ specialty.title }}
-                </a>
-            {% endfor %}
-        {% else %}
-            <p>No specialties found.</p>
-        {% endif %}
+<div class="glass-wrapper">
 
-        <a href="/" class="back-btn"><i class="bi bi-arrow-left-circle"></i> Back to Home</a>
-    </div>
+    <h1><i class="bi bi-clipboard2-pulse"></i> Medical Specialties</h1>
+    <p class="subtitle">Select a specialty to see the available doctors.</p>
+
+    {% if specialties %}
+        {% for specialty in specialties %}
+            <a href="{% url 'doctors_by_specialty' specialty.id %}" class="specialty-card">
+                <span>
+                    <i class="bi bi-heart-pulse-fill specialty-icon"></i>
+                    {{ specialty.title }}
+                </span>
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        {% endfor %}
+    {% else %}
+        <p class="mt-3">No specialties available.</p>
+    {% endif %}
+
+    <a href="/" class="back-btn">
+        <i class="bi bi-arrow-left-circle"></i> Back to Home
+    </a>
+
+</div>
+
 </body>
 </html>

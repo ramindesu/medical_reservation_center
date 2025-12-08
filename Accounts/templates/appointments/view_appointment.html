@@ -3,68 +3,27 @@
 {% block title %}View Appointment{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="h3 mb-4 text-gray-800">Appointment Details</h1>
-
-    {% if messages %}
-    <div class="mb-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Appointment Information</h6>
-        </div>
-        <div class="card-body">
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <strong>Patient:</strong> {{ appointment.patient.user.get_full_name }}
-                </div>
-                <div class="col-md-6">
-                    <strong>Doctor:</strong> Dr. {{ appointment.doctor.user.get_full_name }}
-                </div>
-            </div>
-
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <strong>Date:</strong> {{ appointment.date|date:"M d, Y" }}
-                </div>
-                <div class="col-md-6">
-                    <strong>Service:</strong> {{ appointment.service }}
-                </div>
-            </div>
-
-            <div class="row mb-2">
-                <div class="col-md-6">
-                    <strong>Status:</strong>
-                    <span class="badge badge-{{ appointment.status|lower }}">
-                        {{ appointment.status }}
-                    </span>
-                </div>
-                <div class="col-md-6">
-                    <strong>Created At:</strong> {{ appointment.created_at|date:"M d, Y H:i" }}
-                </div>
-            </div>
-
-            {% if appointment.notes %}
-            <div class="row mt-3">
-                <div class="col-12">
-                    <strong>Notes:</strong>
-                    <p>{{ appointment.notes }}</p>
-                </div>
-            </div>
+<div class="container mt-4">
+    <h2>Appointment Details</h2>
+    <div class="card p-4 shadow">
+        <p><strong>Patient:</strong> {{ appointment.patient.user.get_full_name }}</p>
+        <p><strong>Doctor:</strong> Dr. {{ appointment.doctor.user.get_full_name }}</p>
+        <p><strong>Date:</strong> {{ appointment.date|date:"M d, Y" }}</p>
+        <p><strong>Service:</strong> {{ appointment.service }}</p>
+        <p><strong>Status:</strong> 
+            {% if appointment.display_status == 'waiting' %}
+                <span class="badge bg-warning text-dark">Waiting</span>
+            {% elif appointment.display_status == 'approved' %}
+                <span class="badge bg-success text-dark">Approved</span>
+            {% elif appointment.display_status == 'rejected' %}
+                <span class="badge bg-danger text-dark">Rejected</span>
+            {% elif appointment.display_status == 'blocked' %}
+                <span class="badge bg-dark text-white">Blocked</span>
+            {% else %}
+                <span class="badge bg-secondary text-dark">{{ appointment.display_status|capfirst }}</span>
             {% endif %}
-        </div>
-    </div>
+        </p>
 
-    <div class="mt-3">
-        <a href="{% url 'manage_appointments' %}" class="btn btn-secondary">Back to Appointments</a>
-        {% if user.role in 'ADMIN DOCTOR' %}
-        <a href="{% url 'edit_appointment' appointment.id %}" class="btn btn-warning">Edit Appointment</a>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

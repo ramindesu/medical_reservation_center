@@ -11,6 +11,7 @@
         </div>
     </div>
 
+
     <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
@@ -93,14 +94,14 @@
                     <a href="{% url 'admin_manage_users' 'doctors' %}" class="btn btn-success me-2">Manage Doctors</a>
                     <a href="{% url 'admin_add_user' %}" class="btn btn-info me-2">Add New User</a>
                     <a href="{% url 'admin_manage_appointments' %}" class="btn btn-warning">Manage Appointments</a>
+                    <a href="{% url 'admin_manage_capacity_requests' %}" class="btn btn-secondary ms-2">Manage Capacity Requests</a>
                 </div>
             </div>
         </div>
     </div>
 
-    
+
     <div class="row">
- 
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -125,6 +126,10 @@
                                     <td>{{ user.role }}</td>
                                     <td>{{ user.date_joined|date:"M d, Y" }}</td>
                                 </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">No recent users.</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -132,7 +137,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="col-xl-6 col-lg-6">
             <div class="card shadow mb-4">
@@ -159,6 +163,62 @@
                                     <td>
                                         <span class="badge badge-{{ appointment.status|lower }}">{{ appointment.status }}</span>
                                     </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">No recent appointments.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Capacity Increase Requests</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Doctor</th>
+                                    <th>Current Capacity</th>
+                                    <th>Requested Capacity</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Requested At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in recent_capacity_requests %}
+                                <tr>
+                                    <td>Dr. {{ req.doctor.user.get_full_name }}</td>
+                                    <td>{{ req.current_capacity }}</td>
+                                    <td>{{ req.requested_capacity }}</td>
+                                    <td>{{ req.reason|default:"-" }}</td>
+                                    <td>{{ req.get_status_display }}</td>
+                                    <td>{{ req.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if req.status == "pending" %}
+                                            <a href="{% url 'approve_capacity_request' req.id %}" class="btn btn-success btn-sm">Approve</a>
+                                            <a href="{% url 'reject_capacity_request' req.id %}" class="btn btn-danger btn-sm">Reject</a>
+                                        {% else %}
+                                            <span class="text-muted">Processed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7">No recent capacity requests.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

@@ -35,7 +35,7 @@ AUTH_USER_MODEL = 'Accounts.User'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 
 ALLOW_PATIENT_REGISTRATION = True
@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'Logs',
     'Front'
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -95,9 +97,9 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'medical_db'),
-        'USER': os.getenv('DB_USER', 'medical_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', '12345'),
+        'NAME': os.getenv('DB_NAME', 'medical_dbbb'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
         # 'USER': os.getenv('DB_USER', 'postgres'),
         # 'PASSWORD': os.getenv('DB_PASSWORD', 'Nach(0617)'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
@@ -140,7 +142,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -149,3 +151,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/Avatar/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Avatar')
+
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+LOGOUT_REDIRECT_URL = 'home'

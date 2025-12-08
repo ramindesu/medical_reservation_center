@@ -1,19 +1,30 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import patient_list
 # from .views import request_appointment
 
 
-
 urlpatterns = [
-    
+
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/users/add/', views.admin_add_user, name='admin_add_user'),
-    path('admin/users/<str:user_type>/', views.admin_manage_users, name='admin_manage_users'),
-    path('admin/users/<int:user_id>/edit/', views.admin_edit_user, name='admin_edit_user'),
-    path('admin/appointments/', views.admin_manage_appointments, name='admin_manage_appointments'),
-
+    path('admin/users/<str:user_type>/',
+         views.admin_manage_users, name='admin_manage_users'),
+    path('admin/users/<int:user_id>/edit/',
+         views.admin_edit_user, name='admin_edit_user'),
+    path('admin/appointments/', views.admin_manage_appointments,
+         name='admin_manage_appointments'),
+    path('doctor/appointments/', views.doctor_appointments,
+         name='doctor_appointments'),
+    path('appointments/<int:appointment_id>/create-followup/',
+         views.create_followup_appointment, name='create_followup'),
     
+     path('admin/capacity-requests/', views.admin_manage_capacity_requests, name='admin_manage_capacity_requests'),
+     path('admin/capacity-requests/<int:request_id>/approve/', views.approve_capacity_request, name='approve_capacity_request'),
+     path('admin/capacity-requests/<int:request_id>/reject/', views.reject_capacity_request, name='reject_capacity_request'),     
+
+
     path('doctors/', views.doctors_list, name='doctors_list'),
     path('detail/<int:doctor_id>/', views.doctor_details, name='detail_page'),
     path('booking/<int:doctor_id>/',
@@ -22,22 +33,30 @@ urlpatterns = [
 
     path('patient/edit-profile/', views.edit_patient_profile,
          name='edit_patient_profile'),
-    path('patient/reservations/', views.patient_request_reservation,
-         name='patient_reservations'),
+    path('doctor/edit-profile/', views.edit_doctor_profile,
+         name='edit_doctor_profile'),
+    path('patient/reservations/', views.full_appointment_history,
+         name='full_appointment_history'),
     path(
         'feedback/add/<int:reservation_id>/',
         views.add_feedback,
         name='add_feedback'
     ),
+    path("appointment/cancel/<int:appointment_id>/",
+         views.cancel_appointment, name="cancel_appointment"),
+
+    path('doctor/feedback/<int:reservation_id>/',
+         views.doctor_add_feedback, name='doctor_add_feedback'),
 
 
+    path('doctor/patient_list/', views.patient_list, name='doctor_patient_list'),
 
 
     path('', views.home_redirect, name='home_redirect'),
 
 
     path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path('logout/', views.logout_view, name='logout'),
 
 
     path('register/', views.register, name='register'),
@@ -45,13 +64,19 @@ urlpatterns = [
 
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('doctor/dashboard/', views.doctor_dashboard, name='doctor_dashboard'),
+    #     path('edit-profile/', views.edit_doctor_profile, name='edit_doctor_profile'),
     path('edit-profile/', views.edit_patient_profile, name='edit_profile'),
     # path('request-appointment/', views.request_appointment, name='request_appointment'),
-    path('appointments/manage/', views.admin_manage_appointments, name='manage_appointments'),
-    path('appointments/<int:appointment_id>/approve/', views.approve_appointment, name='approve_appointment'),
-    path('appointments/<int:appointment_id>/reject/', views.reject_appointment, name='reject_appointment'),
-    path('appointments/<int:appointment_id>/view/', views.view_appointment, name='view_appointment'),
-    path('appointments/<int:appointment_id>/edit/', views.edit_appointment, name='edit_appointment'),
+    path('appointments/manage/', views.admin_manage_appointments,
+         name='manage_appointments'),
+    path('appointments/<int:appointment_id>/approve/',
+         views.approve_appointment, name='approve_appointment'),
+    path('appointments/<int:appointment_id>/reject/',
+         views.reject_appointment, name='reject_appointment'),
+    path('appointments/<int:appointment_id>/view/',
+         views.view_appointment, name='view_appointment'),
+    path('appointments/<int:appointment_id>/edit/',
+         views.edit_appointment, name='edit_appointment'),
 
     path('change-password/', auth_views.PasswordChangeView.as_view(
         template_name='accounts/change_password.html',
@@ -77,5 +102,23 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='accounts/password_reset_complete.html'
     ), name='password_reset_complete'),
+    path('doctor/dashboard/patients',
+         views.patient_list, name='doctor_patient_list'),
+    path('increase_capacity/', views.increase_capacity, name='increase_capacity'),
+
+
+
+
+    path('doctor/requests/', views.doctor_requests, name='doctor_requests'),
+    path('doctor/requests/<int:reservation_id>/accept/',
+         views.doctor_accept, name='doctor_accept'),
+    path('doctor/requests/<int:reservation_id>/reject/',
+         views.doctor_reject, name='doctor_reject'),
+    path('doctor/requests/<int:reservation_id>/blacklist/',
+         views.doctor_blacklist, name='doctor_blacklist'),
+    path('doctor/requests/<int:reservation_id>/block/',
+         views.doctor_block_request,
+         name='doctor_block_request'),
+
 
 ]

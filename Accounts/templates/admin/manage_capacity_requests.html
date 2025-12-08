@@ -1,0 +1,271 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800">Capacity Increase Requests</h1>
+            <p class="text-muted">Manage capacity increase requests submitted by doctors.</p>
+        </div>
+    </div>
+
+
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="btn btn-success btn-sm">Approved</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.approved }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="btn btn-danger btn-sm">Rejected</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.rejected }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="?status=all" class="btn btn-outline-primary {% if current_filter == 'all' %}active{% endif %}">
+                    <i class="fas fa-list"></i> All
+                </a>
+                <a href="?status=pending" class="btn btn-outline-warning {% if current_filter == 'pending' %}active{% endif %}">
+                    <i class="fas fa-clock"></i> Pending
+                </a>
+                <a href="?status=approved" class="btn btn-outline-success {% if current_filter == 'approved' %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i> Approved
+                </a>
+                <a href="?status=rejected" class="btn btn-outline-danger {% if current_filter == 'rejected' %}active{% endif %}">
+                    <i class="fas fa-times-circle"></i> Rejected
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-tachometer-alt me-2"></i>Capacity Requests
+            </h6>
+            <span class="badge bg-primary">{{ capacity_requests|length }} requests</span>
+        </div>
+        <div class="card-body">
+            {% if capacity_requests %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th><i class="fas fa-user-md me-1"></i> Doctor</th>
+                            <th><i class="fas fa-chart-line me-1"></i> Current</th>
+                            <th><i class="fas fa-bullseye me-1"></i> Requested</th>
+                            <th><i class="fas fa-arrow-up me-1"></i> Increase</th>
+                            <th><i class="fas fa-comment me-1"></i> Reason</th>
+                            <th><i class="fas fa-tag me-1"></i> Status</th>
+                            <th><i class="fas fa-calendar me-1"></i> Requested At</th>
+                            <th><i class="fas fa-cogs me-1"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in capacity_requests %}
+                        <tr>
+                            <td>
+                                <strong>Dr. {{ req.doctor.user.get_full_name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ req.doctor.specialty.title }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark fs-6 p-2">{{ req.current_capacity }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark fs-6 p-2">{{ req.requested_capacity }}</span>
+                            </td>
+                            <td class="text-success fw-bold fs-6">
+                                +{{ req.requested_capacity|add:"-"|add:req.current_capacity }}
+                            </td>
+                            <td>
+                                {% if req.reason %}
+                                    <span class="text-truncate" style="max-width: 200px;" 
+                                          title="{{ req.reason }}">
+                                        {{ req.reason|truncatewords:5 }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if req.status == 'pending' %}bg-warning
+                                    {% elif req.status == 'approved' %}bg-success
+                                    {% else %}bg-danger{% endif %} p-2 fs-6">
+                                    <i class="fas 
+                                        {% if req.status == 'pending' %}fa-clock
+                                        {% elif req.status == 'approved' %}fa-check-circle
+                                        {% else %}fa-times-circle{% endif %} me-1"></i>
+                                    {{ req.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>{{ req.created_at|date:"M d, Y" }}</small>
+                                <br>
+                                <small class="text-muted">{{ req.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                {% if req.status == 'pending' %}
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="{% url 'approve_capacity_request' req.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-lg px-3 py-2" 
+                                                onclick="return confirm('Approve capacity increase from {{ req.current_capacity }} to {{ req.requested_capacity }} for Dr. {{ req.doctor.user.get_full_name }}?')"
+                                                title="Approve Request">
+                                            <i class="fas fa-check me-1"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'reject_capacity_request' req.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-lg px-3 py-2" 
+                                                onclick="return confirm('Reject capacity request from Dr. {{ req.doctor.user.get_full_name }}?')"
+                                                title="Reject Request">
+                                            <i class="fas fa-times me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                                {% else %}
+                                <span class="badge bg-secondary p-2 fs-6">
+                                    <i class="fas fa-check-double me-1"></i>Processed
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No Capacity Requests</h4>
+                <p class="text-muted">No capacity increase requests found for the selected filter.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-12">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-arrow-left me-2"></i> Back to Admin Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.table th {
+    background-color: #f8f9fc;
+    border-bottom: 2px solid #e3e6f0;
+    font-weight: 600;
+    color: #6e707e;
+    font-size: 0.9rem;
+    padding: 1rem 0.75rem;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.btn-lg {
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 0.35rem;
+}
+
+.card {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+.btn-group .btn {
+    border-radius: 0.35rem;
+    margin-right: 0.5rem;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.table-responsive {
+    border-radius: 0.5rem;
+}
+</style>
+{% endblock %}

@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import User , Doctor, Patient 
+from .models import User , Doctor, Patient, CapacityIncreaseRequest
 from django.contrib.auth.admin import UserAdmin
 from Medical_Archive.models import Specialty
 from Wallet.models import Wallet
 
-
+admin.site.register(CapacityIncreaseRequest)
 class PatientInline(admin.StackedInline):
     model = Patient
     can_delete = False

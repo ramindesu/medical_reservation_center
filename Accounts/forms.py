@@ -1,9 +1,11 @@
+from Configs.models import Config
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Doctor , Patient
+from .models import User, Doctor, Patient
 from Medical_Archive.models import Specialty
-from Reservations.models import Reservations , FeedBack
+from Reservations.models import Reservations, FeedBack
 from Wallet.models import Wallet
+from Configs.models import Blacklist, ReservationBlock
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -25,8 +27,9 @@ class UserRegistrationForm(UserCreationForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-    
-    avatar = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
+
+    avatar = forms.ImageField(required=False, widget=forms.FileInput(
+        attrs={'class': 'form-control'}))
 
     class Meta:
         model = User
@@ -51,16 +54,20 @@ class UserRegistrationForm(UserCreationForm):
 class DoctorReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['date', 'service']
+        fields = ['date', 'time', 'service']
 
         widgets = {
 
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control glass-input'}),
+            'time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control glass-input'}),
             'service': forms.TextInput(attrs={'class': 'form-control glass-input', 'placeholder': 'Service type...'}),
+
         }
         labels = {
             'date': 'Date',
+            'time': 'Time',
             'service': 'Service',
+
         }
 
 
@@ -92,28 +99,67 @@ class PatientProfileForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'phone', 'address',]
+        fields = ['first_name', 'last_name', 'email', 'phone',]
 
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'class': 'form-control'}),
-            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+
+class DoctorProfileForm(forms.ModelForm):
+
+    first_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    last_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control glass-input'})
+    )
+    phone = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+    address = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control glass-input'})
+    )
+
+    specialty = forms.ModelChoiceField(
+        queryset=Specialty.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select glass-input'})
+    )
+
+    avatar = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control glass-input'})
+    )
+
+    class Meta:
+        model = Doctor
+        fields = ['specialty', 'avatar']
+
 
 class PatientReservationForm(forms.ModelForm):
     class Meta:
         model = Reservations
-        fields = ['doctor', 'date', 'service']
-        
+        fields = ['date', 'service']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'service': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Service'}),
-            'doctor': forms.Select(attrs={'class': 'form-select'}),
+
         }
 # ------------------------
+
+
 class AdminUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(
         label='Password',
@@ -123,19 +169,16 @@ class AdminUserCreationForm(forms.ModelForm):
         label='Confirm Password',
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
-    
     specialty = forms.ModelChoiceField(
         queryset=Specialty.objects.all(),
         required=False,
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-    
     monthly_appointment_limit = forms.IntegerField(
         required=False,
         initial=5,
         widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
-    
     monthly_reservation_capacity = forms.IntegerField(
         required=False,
         initial=50,
@@ -144,7 +187,8 @@ class AdminUserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'address', 'role']
+        fields = ['username', 'first_name', 'last_name',
+                  'email', 'phone', 'address', 'role']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -154,20 +198,35 @@ class AdminUserCreationForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'role': forms.Select(attrs={'class': 'form-select'}),
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        role_field = self.fields['role']
 
+        available_choices = []
+
+        for choice in role_field.choices:
+            if choice[0] != '':  
+                if hasattr(User, 'Role'):  
+                    if choice[0] in [User.Role.DOCTOR, User.Role.PATIENT]:
+                        available_choices.append(choice)
+                else:
+                    if choice[0] in ['DOCTOR', 'PATIENT']:
+                        available_choices.append(choice)
+        role_field.choices = [('', '---------')] + available_choices
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         password1 = cleaned_data.get('password1')
         password2 = cleaned_data.get('password2')
         specialty = cleaned_data.get('specialty')
-        
+
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
-        
+
         if role == User.Role.DOCTOR and not specialty:
             raise forms.ValidationError("Specialty is required for doctors")
-        
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -175,18 +234,21 @@ class AdminUserCreationForm(forms.ModelForm):
         password = self.cleaned_data.get('password1')
         if password:
             user.set_password(password)
-        
+
         if commit:
             user.save()
             wallet = Wallet.objects.create(balance=0)
-            
+
             role = self.cleaned_data.get('role')
             if role == User.Role.PATIENT:
-                monthly_limit = self.cleaned_data.get('monthly_appointment_limit', 5)
-                Patient.objects.create(user=user, wallet=wallet, monthly_appointment_limit=monthly_limit)
+                monthly_limit = self.cleaned_data.get(
+                    'monthly_appointment_limit', 5)
+                Patient.objects.create(
+                    user=user, wallet=wallet, monthly_appointment_limit=monthly_limit)
             elif role == User.Role.DOCTOR:
                 specialty = self.cleaned_data.get('specialty')
-                monthly_capacity = self.cleaned_data.get('monthly_reservation_capacity', 50)
+                monthly_capacity = self.cleaned_data.get(
+                    'monthly_reservation_capacity', 50)
                 medical_code = f"DR-{user.id:04d}"
                 Doctor.objects.create(
                     user=user,
@@ -195,14 +257,17 @@ class AdminUserCreationForm(forms.ModelForm):
                     medical_code=medical_code,
                     monthly_reservation_capacity=monthly_capacity
                 )
-        
+
         return user
-    
+
 # -------------------
+
+
 class AdminUserEditForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'phone', 'address', 'is_active']
+        fields = ['username', 'first_name', 'last_name',
+                  'email', 'phone', 'address', 'is_active']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -216,6 +281,7 @@ class AdminUserEditForm(forms.ModelForm):
             'is_active': 'Active',
         }
 
+
 class PatientEditForm(forms.ModelForm):
     class Meta:
         model = Patient
@@ -226,6 +292,7 @@ class PatientEditForm(forms.ModelForm):
         labels = {
             'monthly_appointment_limit': 'monthly limit reservation no',
         }
+
 
 class DoctorEditForm(forms.ModelForm):
     class Meta:
@@ -242,6 +309,7 @@ class DoctorEditForm(forms.ModelForm):
             'medical_code': 'medical code',
         }
 
+
 class FeedBackForm(forms.ModelForm):
     class Meta:
         model = FeedBack
@@ -255,3 +323,47 @@ class FeedBackForm(forms.ModelForm):
             'rating': 'Rating (0-10)',
             'comment': 'Comment',
         }
+# -----------------------------------------------------------
+
+
+class BlacklistForm(forms.ModelForm):
+    class Meta:
+        model = Blacklist
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking'}),
+        }
+        labels = {
+            'reason': 'Reason',
+        }
+
+
+class BlockReservationForm(forms.ModelForm):
+    class Meta:
+        model = ReservationBlock
+        fields = ['reason']
+        widgets = {
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for blocking this request'}),
+        }
+        labels = {
+            'reason': 'Reason',
+        }
+
+
+class IncreaseCapacityForm(forms.Form):
+    new_capacity = forms.IntegerField(
+        label='New Monthly Reservation Capacity',
+        min_value=1,
+        max_value=100,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control glass-input',
+            'placeholder': 'Enter new capacity...'
+        })
+    )
+
+    def clean_new_capacity(self):
+        capacity = self.cleaned_data['new_capacity']
+        if capacity < 1 or capacity > 50:
+            raise forms.ValidationError(
+                "Capacity must be between 1 and 50.")
+        return capacity
