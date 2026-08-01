@@ -81,7 +81,7 @@ This project is a web-based platform designed to facilitate online **appointment
 - The project is being developed collaboratively.
 - All commits should follow GitLab workflow standards.
 - Each phase will be delivered and reviewed before proceeding.
-- Members : RAMIN, ATEFEH, NILOUFAR, HOSEIN, ZAHRA
+- Members : RAMIN, ATEFEH, NILOUFAR, GHAZAAL
 
 ---
 
